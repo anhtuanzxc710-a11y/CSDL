@@ -1,7 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
+from sqlalchemy.orm import Session
+
 from pydantic import BaseModel
 import plotly.graph_objects as go
 import json
@@ -10,6 +12,8 @@ import os
 import numpy as np
 import requests
 from datetime import datetime
+from typing import List, Optional
+
 
 
 def sanitize_floats(obj):
@@ -32,7 +36,27 @@ from core.ai_advisor import stream_ai_advice
 from core.backtester import run_backtrader_strategy
 from core.signals import compute_signals
 
+from app.core.deps import get_db, get_current_active_user
+from app.models.user import User
+from app.models.refresh_token import RefreshToken
+from app.models.portfolio import Portfolio
+from app.models.transaction import Transaction
+from app.models.portfolio_snapshot import PortfolioSnapshot
+from app.models.chat import ChatThread, ChatMessage
+from app.models.system import Report, AuditLog
+from app.models.stocks import Stock
+from app.services import chat_service
+
+
 app = FastAPI(title="DNT Quant Lab API")
+
+from app.api.routers import auth, portfolios, performance, chat, system, optimization
+app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
+app.include_router(portfolios.router, prefix="/api/portfolios", tags=["portfolios"])
+app.include_router(performance.router, prefix="/api/portfolios", tags=["performance"])
+app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
+app.include_router(system.router, prefix="/api/system", tags=["system"])
+app.include_router(optimization.router, prefix="/api/optimization", tags=["optimization"])
 
 # Database (RAM) để lưu trạng thái thanh toán
 # Format: {"SESSION_ID": True}
@@ -67,14 +91,36 @@ def get_simulation_data(req: SimulationRequest):
         
     # 1. Tải và Xử lý dữ liệu
     port_ret, mkt_ret = prepare_portfolio_data(req.tickers, days_back=1000)
-    
+
+    # [BUG FIX] Validate: chỉ giữ tickers mà data engine fetch được thành công.
+    # Nếu một mã bị lỗi khi fetch (network / delisted), prepare_portfolio_data
+    # sẽ bỏ cột đó → port_ret có ít cột hơn req.tickers → dot product sẽ crash.
+    available_tickers = list(port_ret.columns)
+    if len(available_tickers) < 2:
+        return {"error": f"Không đủ dữ liệu. Chỉ lấy được {available_tickers}. Cần ít nhất 2 mã hợp lệ."}
+    # Chỉ dùng tickers thật sự có dữ liệu cho toàn bộ pipeline
+    effective_tickers = available_tickers
+    port_ret = port_ret[effective_tickers]
+
     # 2. Chạy thuật toán Monte Carlo
     num_ports = 10000
     mc_results = run_monte_carlo(port_ret, num_ports, req.capital)
+
+    # [BUG FIX] Sau khi Monte Carlo tính xong ms_weights, đảm bảo chỉ giữ
+    # keys có trong port_ret.columns và re-normalize về tổng = 1.
+    raw_ms_weights: dict = mc_results['max_sharpe']['weights']
+    filtered_weights = {t: w for t, w in raw_ms_weights.items() if t in effective_tickers}
+    total_w = sum(filtered_weights.values())
+    if total_w > 0:
+        filtered_weights = {t: w / total_w for t, w in filtered_weights.items()}
+    else:
+        # Fallback: equal weight nếu normalize về 0
+        filtered_weights = {t: 1.0 / len(effective_tickers) for t in effective_tickers}
+    mc_results['max_sharpe']['weights'] = filtered_weights
     
     # 3. Chạy Stress Test dựa trên rổ cổ phiếu Max Sharpe
     stress_test_results = calculate_stress_test(
-        port_ret, mkt_ret, mc_results['max_sharpe']['weights'], req.capital, crash_percent=-0.05
+        port_ret, mkt_ret, filtered_weights, req.capital, crash_percent=-0.05
     )
     
     # 4. Vẽ biểu đồ Plotly (Bắn Json về Web)
@@ -150,10 +196,16 @@ def get_simulation_data(req: SimulationRequest):
     signals_data = compute_signals(req.tickers, ms_weights, req.capital)
     
     # Advanced Metrics & Raw Prices
-    port_ret_selected = port_ret[list(ms_weights.keys())]
-    daily_port_returns = port_ret_selected.dot(np.array(list(ms_weights.values())))
+    # [BUG FIX] Dùng filtered_weights (đã sanitize) thay vì ms_weights raw
+    ms_weights = filtered_weights
+    port_ret_selected = port_ret[list(ms_weights.keys())]  # guaranteed to exist
+    weights_arr = np.array(list(ms_weights.values()))
+    # Final shape guard: nếu vẫn mismatch thì dùng equal weight
+    if port_ret_selected.shape[1] != len(weights_arr):
+        weights_arr = np.ones(port_ret_selected.shape[1]) / port_ret_selected.shape[1]
+    daily_port_returns = port_ret_selected.dot(weights_arr)
     adv_metrics = calculate_advanced_metrics(daily_port_returns, mkt_ret)
-    cur_prices = fetch_current_prices(req.tickers)
+    cur_prices = fetch_current_prices(effective_tickers)
     
     # Fetch Fundamental data for all tickers to assist AI
     fundamentals_data = {}
@@ -211,36 +263,67 @@ def get_live_news(tickers: str):
 
 # ── Gemini AI Advice ──────────────────────────────────────────
 class AIAdviceRequest(BaseModel):
-    monte_carlo: dict
-    stress_test: dict
-    advanced_metrics: dict = {}
-    manual_bctc_tickers: list[str] = []
-    news_data: dict = {}
+    monte_carlo: Optional[dict] = {}
+    stress_test: Optional[dict] = {}
+    advanced_metrics: Optional[dict] = {}
+    manual_bctc_tickers: Optional[list[str]] = []
+    news_data: Optional[dict] = {}
     lang: str = "vi"
+    thread_id: Optional[int] = None
+    portfolio_id: Optional[int] = None
+    prompt: Optional[str] = None
+    portfolio_data: Optional[dict] = None
+
 
 @app.post("/api/ai-advice")
-def get_ai_advice(req: AIAdviceRequest):
+def get_ai_advice(
+    req: AIAdviceRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
     """
-    Stream lời khuyên đầu tư từ Gemini AI dựa trên kết quả Monte Carlo.
-    Sử dụng Server-Sent streaming để frontend nhận text từng chunk.
+    Stream lời khuyên đầu tư từ Gemini AI và lưu lại vào lịch sử ChatThreads/ChatMessages.
     """
-    data = {
-        "monte_carlo": req.monte_carlo,
-        "stress_test": req.stress_test,
-        "advanced_metrics": req.advanced_metrics,
-        "manual_bctc_tickers": req.manual_bctc_tickers,
-        "news_data": req.news_data
-    }
+    from app.core.config import settings
+    if not settings.GEMINI_API_KEY or settings.GEMINI_API_KEY == "your_gemini_api_key_here":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail="Gemini AI is not configured. Please add GEMINI_API_KEY to backend/.env"
+        )
+
+    # Prepare data for AI engine (merge everything from request)
+    data = req.dict()
+
+    # Ensure thread exists or create new one
+    thread_id = req.thread_id
+    if not thread_id:
+        title = f"Tư vấn - {datetime.now().strftime('%d/%m %H:%M')}"
+        thread = chat_service.create_thread(db, current_user.id, title)
+        thread_id = thread.id
+    
+    # Save user prompt
+    user_prompt = req.prompt or f"Phân tích danh mục với initial_capital={req.monte_carlo.get('monetary_values', {}).get('initial_capital', 0)}"
+    chat_service.add_message(db, thread_id, "user", user_prompt)
 
     def generate():
+        full_response = ""
         for chunk in stream_ai_advice(data, req.lang):
+            full_response += chunk
             yield chunk
+        
+        # Save AI response at the end of stream
+        # Note: We use a new session if needed or just use the current one if thread-safe
+        chat_service.add_message(db, thread_id, "assistant", full_response)
 
     return StreamingResponse(
         generate(),
         media_type="text/plain; charset=utf-8",
-        headers={"X-Content-Type-Options": "nosniff"}
+        headers={
+            "X-Content-Type-Options": "nosniff",
+            "X-Thread-Id": str(thread_id)
+        }
     )
+
 
 
 class EvaluationRequest(BaseModel):

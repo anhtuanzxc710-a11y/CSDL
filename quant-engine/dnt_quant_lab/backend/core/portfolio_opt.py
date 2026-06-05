@@ -47,8 +47,8 @@ def run_monte_carlo(returns_df: pd.DataFrame, num_portfolios: int = 10000, initi
     # Ràng buộc: Tổng tỉ trọng = 1
     constraints = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1})
     
-    # Ràng buộc: Tối thiểu 5%, Tối đa 40% cho mỗi mã cổ phiếu
-    bounds = tuple((0.05, 0.40) for _ in range(num_assets))
+    # Ràng buộc: Tối thiểu 5%, Tối đa 50% cho mỗi mã cổ phiếu
+    bounds = tuple((0.05, 0.50) for _ in range(num_assets))
     
     # Khởi tạo điểm bắt đầu (equal weights)
     init_guess = np.array(num_assets * [1. / num_assets])

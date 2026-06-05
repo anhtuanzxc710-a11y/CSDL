@@ -23,7 +23,7 @@ const typingTexts = {
 };
 
 // Khởi tạo ngôn ngữ từ bộ nhớ trình duyệt
-let currentLang = localStorage.getItem('dnt_lang') || 'en';
+let currentLang = localStorage.getItem('nvt_lang') || 'en';
 let textArray = typingTexts[currentLang];
 
 const typingDelay = 100;
@@ -263,65 +263,62 @@ if (aboutAiCtaBtn) {
  */
 const translations = {
     en: {
-        nav_home: "Home", nav_about: "About", nav_live: "Live App", nav_research: "Research", nav_contact: "Contact", nav_cv: "Download CV",
-        hero_greeting: "Hi, I'm <span class='accent'>Doan Nguyen Tri</span> 👋",
-        hero_role: "Data Science student <br> specializing in ",
-        hero_desc: "I specialize in the complete data lifecycle—from scraping and wrangling messy datasets to conducting rigorous exploratory data analysis (EDA). I build data-driven financial models and algorithmic tools that bridge the gap between complex quantitative research and actionable investment strategies.",
-        hero_btn_live: "Try live dashboard", hero_btn_cv: "Download CV", scroll_down: "Scroll Down",
+        nav_home: "Home", nav_about: "About", nav_live: "Live App", nav_research: "Research", nav_contact: "Contact", nav_cv: "CV coming soon",
+        hero_greeting: "Hi, This is <span class='accent'>NGUYỄN VĂN TUẤN</span> 👋",
+        hero_role: "Fintech student <br> specializing in ",
+        hero_btn_live: "Try live dashboard", scroll_down: "Scroll Down",
         about_title: "About Me",
         about_desc: "I am a final-year Data Science student at the <strong>University of Economics and Finance (UEF)</strong>, where I've developed a deep-rooted passion for <strong>Financial Data Analysis</strong>. My journey is driven by an insatiable curiosity for how data intersects with global markets.<br><br>Beyond the numbers, I love exploring the 'creative' side of tech. I've taught myself <strong>Web Programming and Design</strong> to ensure my analytical models aren't just accurate, but also beautifully presented and user-friendly. I'm a firm believer in being a lifelong learner, always eager to pick up new tools—from complex algorithmic trading strategies to the latest web animations—bridging the gap between rigorous finance and modern technology.",
-        ai_cta_text: "Curious about my other secret skills or want to chat with my virtual self?",
+        ai_cta_text: "Curious about my secret skills or want to chat with my virtual bot?",
         ai_cta_btn: "More about me with my AI Agent",
-        featured_title_quantlab: "Featured: DNT Quant Lab API", 
+        featured_title_quantlab: "Featured: NVT Quant Lab API", 
         featured_sub_quantlab: "This project is an AI-driven investment advisory assistant. The system fetches real-time historical stock prices, calculates quantitative metrics, runs backtests, and generates 10,000 Monte Carlo simulations. Leveraging this rich dataset, Gemini AI analyzes and extracts the most optimal investment strategies. Additionally, the portfolio evaluation feature allows investors to assess the quality of their current holdings. The core objective is to democratize stock investing, empowering users with limited market knowledge to confidently reference insights and make effective investment decisions.",
-        iframe_title_quantlab: "DNT Quant Lab - Live Server",
+        iframe_title_quantlab: "NVT Quant Lab - Live Server",
         featured_title_vn30: "Featured: VN STOCKS Quant", 
-        featured_sub_vn30: "This quantitative research project serves as the foundational prerequisite for the DNT Quant Lab. Specifically, the comprehensive dataset along with the data collection and processing methods established here power the analytical engine of DNT Lab. The application focuses on analyzing the top 30 largest capitalized stocks in Vietnam (VN30) and benchmarking their correlation against the market index (VNINDEX). It provides visualization tools for volatility and risk-return distribution through interactive charts, serving as a robust environment for dissecting historical data, comparing systematic risks, and exploring the micro-behavior of individual equities within the VN30 basket.",
+        featured_sub_vn30: "This quantitative research project serves as the foundational prerequisite for the NVT Quant Lab. Specifically, the comprehensive dataset along with the data collection and processing methods established here power the analytical engine of NVT Lab. The application focuses on analyzing the top 30 largest capitalized stocks in Vietnam (VN30) and benchmarking their correlation against the market index (VNINDEX). It provides visualization tools for volatility and risk-return distribution through interactive charts, serving as a robust environment for dissecting historical data, comparing systematic risks, and exploring the micro-behavior of individual equities within the VN30 basket.",
         iframe_title_vn30: "Live Trading Environment",
         projects_title: "Other Analytical Projects",
-        proj_1_desc: "A portfolio optimization tool using the Capital Asset Pricing Model (CAPM) and Monte Carlo simulation to identify the efficient frontier.",
-        proj_2_desc: "An empirical analysis project examining the macro-economic relationship and exchange rate dynamics between the USD and VND.",
-        proj_3_desc: "Developed a detailed credit scoring model involving synthetic data generation, rigorous feature engineering, and policy simulation.",
-        view_code: "View Code",
+        proj_1_desc: "Coming soon",
+        proj_2_desc: "Coming soon",
+        proj_3_desc: "Coming soon",
         github_cta_text: "Hungry for more? Explore all my repositories and experimental scripts.",
         github_cta_btn: "View more on GitHub",
         contact_title: "Get In Touch", contact_sub: "Currently seeking Quantitative Analyst / Data Analyst internship opportunities.",
-        footer_rights: "© 2026 <strong>DOAN NGUYEN TRI</strong>. All Rights Reserved.",
-        footer_sub: "Designed & Developed by Tri Doan | Built for Quantitative Finance",
+        footer_rights: "© 2026 <strong>NGUYỄN VĂN TUẤN</strong>. All Rights Reserved.",
+        footer_sub: "Designed & Developed by NGUYỄN VĂN TUẤN | Built for Quantitative Finance",
         
         // Dịch thuật cho Chatbot
-        chat_welcome: "Hello! I'm Tri's AI assistant. Do you have any questions?",
+        chat_welcome: "Hello! I'm NGUYỄN VĂN TUẤN's AI assistant. Do you have any questions?",
         chat_placeholder: "Ask me anything...",
     },
     vi: {
-        nav_home: "Trang chủ", nav_about: "Về tôi", nav_live: "Ứng dụng Live", nav_research: "Nghiên cứu", nav_contact: "Liên hệ", nav_cv: "Tải CV",
-        hero_greeting: "Xin chào, mình là <span class='accent'>Đoàn Nguyên Trí</span> 👋",
-        hero_role: "Sinh viên Khoa học Dữ liệu <br> chuyên về ",
+        nav_home: "Trang chủ", nav_about: "Về Bản Thân", nav_live: "Ứng dụng Live", nav_research: "Nghiên cứu", nav_contact: "Liên hệ", nav_cv: "CV sắp ra mắt",
+        hero_greeting: "Xin chào, mình là <span class='accent'>NGUYỄN VĂN TUẤN</span> 👋",
+        hero_role: "Sinh viên Fintech <br> chuyên về ",
         hero_desc: "Mình chuyên xử lý toàn bộ vòng đời của dữ liệu—từ thu thập, làm sạch các tập dữ liệu thô cho đến phân tích dữ liệu khám phá (EDA) chuyên sâu. Mình xây dựng các mô hình tài chính và công cụ thuật toán dựa trên dữ liệu, nhằm thu hẹp khoảng cách giữa nghiên cứu định lượng phức tạp và các chiến lược đầu tư thực tiễn.",
-        hero_btn_live: "Trải nghiệm Dashboard", hero_btn_cv: "Tải CV", scroll_down: "Cuộn xuống",
+        hero_btn_live: "Trải nghiệm Dashboard", scroll_down: "Cuộn xuống",
         about_title: "Về Bản Thân",
         about_desc: "Mình là sinh viên năm cuối chuyên ngành Khoa học Dữ liệu tại <strong>Đại học Kinh tế Tài chính TP.HCM (UEF)</strong>, nơi mình nuôi dưỡng niềm đam mê mãnh liệt với <strong>Phân tích Dữ liệu Tài chính</strong>. Hành trình của mình được dẫn dắt bởi sự tò mò không ngừng về cách dữ liệu vận hành và tác động đến thị trường toàn cầu.<br><br>Bên cạnh những con số, mình thích khám phá khía cạnh 'sáng tạo' của công nghệ. Mình đã tự học <strong>Lập trình và Thiết kế Web</strong> để đảm bảo các mô hình phân tích của mình không chỉ chính xác mà còn được trình bày đẹp mắt và thân thiện với người dùng. Mình luôn tin vào việc học tập suốt đời, luôn sẵn sàng tiếp thu các công cụ mới—từ các chiến lược giao dịch thuật toán phức tạp đến các hiệu ứng web hiện đại nhất—để kết nối giữa tài chính chuyên sâu và công nghệ.",
         ai_cta_text: "Tò mò về những kỹ năng bí mật khác của mình hay muốn trò chuyện với bản sao ảo của mình?",
         ai_cta_btn: "Trò chuyện với AI Trợ lý",
-        featured_title_quantlab: "Dự án Nổi bật: DNT Quant Lab", 
+        featured_title_quantlab: "Dự án Nổi bật: NVT Quant Lab", 
         featured_sub_quantlab: "Đây là dự án trợ lí AI tư vấn đầu tư. Hệ thống thu thập dữ liệu giá cổ phiếu lịch sử theo thời gian thực, tính toán các chỉ số định lượng, chạy backtest và tạo bảng mô phỏng 10.000 trường hợp bằng thuật toán Monte Carlo. Dựa trên bộ dữ liệu này, AI Gemini sẽ phân tích và đưa ra chiến lược đầu tư tối ưu nhất. Thêm vào đó, tính năng đánh giá danh mục giúp nhà đầu tư kiểm định hiệu quả của các mã cổ phiếu đang nắm giữ. Mục tiêu cốt lõi của dự án là đơn giản hóa việc đầu tư chứng khoán, giúp ngay cả những nhà đầu tư F0 và những người không có nhiều kiến thức nền tảng về thị trường vẫn có thể tham khảo để ra quyết định đầu tư an toàn và hiệu quả.",
-        iframe_title_quantlab: "Máy chủ DNT Quant Lab",
+        iframe_title_quantlab: "Máy chủ NVT Quant Lab",
         featured_title_vn30: "Dự án Nổi bật: VN STOCKS Quant", 
-        featured_sub_vn30: "Dự án nghiên cứu định lượng này đóng vai trò là tiền đề nền tảng để thực hiện DNT Quant Lab. Cụ thể, bộ dữ liệu cũng như phương thức thu thập và xử lý dữ liệu của DNT Lab đều được kế thừa và phát triển trực tiếp từ dự án này. Ứng dụng tập trung phân tích 30 mã cổ phiếu vốn hóa lớn nhất Việt Nam (VN30) và so sánh tương quan với chỉ số thị trường chuẩn (VNINDEX), cung cấp các công cụ trực quan hóa biến động, phân phối rủi ro và kỳ vọng lợi nhuận qua các biểu đồ tương tác. Đây là môi trường mạnh mẽ phục vụ cho việc bóc tách dữ liệu lịch sử, đo lường rủi ro hệ thống và nghiên cứu hành vi của từng cổ phiếu chuyên biệt trong nhóm VN30.",
+        featured_sub_vn30: "Dự án nghiên cứu định lượng này đóng vai trò là tiền đề nền tảng để thực hiện NVT Quant Lab. Cụ thể, bộ dữ liệu cũng như phương thức thu thập và xử lý dữ liệu của NVT Lab đều được kế thừa và phát triển trực tiếp từ dự án này. Ứng dụng tập trung phân tích 30 mã cổ phiếu vốn hóa lớn nhất Việt Nam (VN30) và so sánh tương quan với chỉ số thị trường chuẩn (VNINDEX), cung cấp các công cụ trực quan hóa biến động, phân phối rủi ro và kỳ vọng lợi nhuận qua các biểu đồ tương tác. Đây là môi trường mạnh mẽ phục vụ cho việc bóc tách dữ liệu lịch sử, đo lường rủi ro hệ thống và nghiên cứu hành vi của từng cổ phiếu chuyên biệt trong nhóm VN30.",
         iframe_title_vn30: "Môi trường Giao dịch Trực tiếp",
         projects_title: "Các Dự án Phân tích Khác",
-        proj_1_desc: "Công cụ tối ưu hóa danh mục đầu tư sử dụng Mô hình Định giá Tài sản Vốn (CAPM) và mô phỏng Monte Carlo để xác định đường biên hiệu quả.",
-        proj_2_desc: "Dự án phân tích thực nghiệm đánh giá mối quan hệ kinh tế vĩ mô và động lực tỷ giá hối đoái giữa USD và VND.",
-        proj_3_desc: "Phát triển mô hình chấm điểm tín dụng chi tiết bao gồm tạo dữ liệu tổng hợp, tinh chỉnh đặc trưng chuyên sâu và mô phỏng chính sách.",
-        view_code: "Xem Mã Nguồn",
+        proj_1_desc: "Coming soon",
+        proj_2_desc: "Coming soon",
+        proj_3_desc: "Coming soon",
         github_cta_text: "Bạn muốn xem thêm? Khám phá toàn bộ kho lưu trữ và các kịch bản thử nghiệm của mình.",
         github_cta_btn: "Xem thêm trên GitHub",
-        contact_title: "Liên Hệ Với Mình", contact_sub: "Hiện mình đang tìm kiếm cơ hội thực tập vị trí Quantitative Analyst / Data Analyst.",
-        footer_rights: "© 2026 <strong>ĐOÀN NGUYÊN TRÍ</strong>. Đã đăng ký Bản quyền.",
-        footer_sub: "Thiết kế & Phát triển bởi Trí Đoàn | Dành cho Tài chính Định lượng",
+        contact_title: "Liên Hệ Với Mình", contact_sub: "Hiện tại đang trống",
+        footer_rights: "© 2026 <strong>NGUYỄN VĂN TUẤN</strong>. Đã đăng ký Bản quyền.",
+        footer_sub: "Thiết kế & Phát triển bởi NGUYỄN VĂN TUẤN | Dành cho Tài chính Định lượng",
         
         // Dịch thuật cho Chatbot
-        chat_welcome: "Xin chào! Mình là trợ lý AI của Trí. Bạn có câu hỏi gì không?",
+        chat_welcome: "Xin chào! Mình là trợ lý AI của NGUYỄN VĂN TUẤN. Bạn có câu hỏi gì không?",
         chat_placeholder: "Đợi bạn hỏi...",
     }
 };
@@ -360,7 +357,7 @@ function updateLanguage(lang) {
 
     // Cập nhật biến ngôn ngữ toàn cục và lưu lại
     currentLang = lang;
-    localStorage.setItem('dnt_lang', lang);
+    localStorage.setItem('nvt_lang', lang);
 }
 
 // Lắng nghe sự kiện GẠT NÚT

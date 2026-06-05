@@ -1,387 +1,75 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DNT Quant Lab</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Import Plotly.js for frontend chart rendering -->
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="description" content="DNT Quant Lab — AI-Powered Portfolio Risk Analysis Platform. Monte Carlo simulation, Stress Test, Backtest, Advanced Metrics."/>
+    <title>DNT Quant Lab · Portfolio Risk Analysis</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+
+
+    <!-- App Stylesheet -->
+    <link rel="stylesheet" href="css/app.css"/>
+
+    <!-- External Libraries -->
+    <!-- Plotly.js: Used by Risk Analysis for Monte Carlo, Backtest, Allocation, Revenue charts -->
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
-    <!-- Html2Pdf -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- html2pdf: Used by Reports page for PDF export -->
+    <script src="js/lib/html2pdf.bundle.min.js"></script>
 </head>
 <body>
-    <div class="background-effect"></div>
-    
-    <div class="dashboard-container">
+    <!--
+    ╔══════════════════════════════════════════════════════╗
+    ║   DNT Quant Lab · SPA Shell                         ║
+    ║   Hash-based routing: JS modules in /js/app.js      ║
+    ║   Backend: FastAPI at /api/* (Same-origin)          ║
+    ╚══════════════════════════════════════════════════════╝
+
+    Layout:
+    ┌─────────────────────────────────────────────────┐
+    │  #sidebar-container │  #topbar-container        │
+    │  (Sidebar.js)       ├───────────────────────────│
+    │                     │  #main-content            │
+    │                     │  (rendered by views/*.js) │
+    └─────────────────────────────────────────────────┘
+    Global: #chat-widget-root (ChatWidget.js, appended to body)
+    -->
+
+    <div id="app">
         <!-- Sidebar -->
-        <aside class="sidebar glass-panel">
-            <h1 class="logo">DNT LAB</h1>
-            <p class="subtitle" data-i18n="subtitle">AI Investment Advisor</p>
-            
-            <div style="margin-bottom: 25px;">
-                <select id="lang-selector" class="glass-input" style="width: 100%; cursor: pointer;">
-                    <option value="en" selected>🇺🇸 English (EN)</option>
-                    <option value="vi">🇻🇳 Tiếng Việt (VI)</option>
-                </select>
-            </div>
-            
-            <nav class="nav-menu">
-                <a href="#" class="nav-item active" data-i18n="nav_opt">Portfolio Optimizer</a>
-                <a href="#" class="nav-item" data-i18n="nav_eval">Portfolio Evaluator</a>
-                <a href="#" class="nav-item" data-i18n="nav_fin" style="color: #F59E0B;">Financial Reports 📄</a>
-            </nav>
-            
-            <div class="user-inputs">
-                <!-- Mode 1: Optimizer -->
-                <div id="mode-optimizer">
-                    <h3 data-i18n="params_title">Investment Parameters</h3>
-                <div class="input-group">
-                    <label data-i18n="label_tickers">Mã Cổ phiếu (Cách nhau bởi dấu phẩy)</label>
-                    <input type="text" id="tickers-input" placeholder="e.g. FPT, MWG, VCB" class="glass-input" data-i18n-ph="ph_tickers">
-                </div>
-                <div class="input-group">
-                    <label data-i18n="label_capital">Initial Capital (VND)</label>
-                    <input type="text" id="capital-input" placeholder="e.g. 1.000.000.000" class="glass-input" data-i18n-ph="ph_capital">
-                </div>
-                <div class="input-group">
-                    <label data-i18n="label_return">Target Return (%)</label>
-                    <input type="number" id="target-return" placeholder="20%" class="glass-input">
-                </div>
-                <div style="display: flex; gap: 10px; margin-top: 1rem;">
-                    <button class="action-btn" id="run-btn" data-i18n="btn_run" style="flex: 1; margin-top: 0;">Run Simulation</button>
-                    <button class="action-btn" id="stress-btn" data-i18n="btn_stress" style="background-color: var(--neon-alert); margin-top: 0; display: none;" title="VNI -50 điểm rớt">🔥 Stress Test</button>
-                </div>
-                </div>
+        <div id="sidebar-container">
+            <!-- Rendered by js/components/Sidebar.js -->
+        </div>
 
-                <!-- Mode 2: Evaluator -->
-                <div id="mode-evaluator" style="display: none;">
-                    <h3 data-i18n="eval_title">My Custom Portfolio</h3>
-                    
-                    <div id="holdings-list" style="margin-bottom: 10px;">
-                        <!-- Dynamic rows will go here -->
-                        <div class="holding-row" style="display: flex; gap: 5px; margin-bottom: 5px;">
-                            <input type="text" class="glass-input t-input" placeholder="Ticker (VD: SHB)" style="width: 50%;">
-                            <input type="number" class="glass-input v-input" placeholder="Qty (Khối lượng)" style="width: 50%;">
-                        </div>
+        <!-- Topbar -->
+        <div id="topbar-container">
+            <!-- Rendered by js/components/Topbar.js -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <div class="topbar-breadcrumb">
+                        <span class="breadcrumb-app">DNT Quant Lab</span>
+                        <span class="breadcrumb-sep">›</span>
+                        <span class="breadcrumb-page">Đang tải...</span>
                     </div>
-                    
-                    <button id="add-holding-btn" style="background: transparent; border: 1px dashed var(--text-muted); color: var(--text-muted); width: 100%; border-radius: 6px; padding: 5px; cursor: pointer; margin-bottom: 15px;" data-i18n="btn_add_stock">+ Thêm mã</button>
-                    
-                    <div id="live-capital-container" style="text-align: right; margin-bottom: 15px; padding: 10px; background: rgba(0,255,170,0.05); border-radius: 6px; border-right: 3px solid var(--neon);">
-                        <span style="color: var(--text-muted); font-size: 0.8rem;" data-i18n="live_capital_label">Tổng Vốn Ước Tính</span><br>
-                        <strong id="live-capital-display" style="color: var(--neon); font-size: 1.2rem;">0₫</strong>
-                    </div>
-
-                    <div class="input-group">
-                        <label data-i18n="label_timeframe">Timeframe (Kỳ hạn)</label>
-                        <select id="timeframe-select" class="glass-input">
-                            <option value="21" data-i18n="tf_1m">1 Tháng (21 Ngày GD)</option>
-                            <option value="63" data-i18n="tf_3m" selected>3 Tháng (63 Ngày GD)</option>
-                            <option value="126" data-i18n="tf_6m">6 Tháng (126 Kh GD)</option>
-                            <option value="252" data-i18n="tf_1y">1 Năm (252 Ngày GD)</option>
-                        </select>
-                    </div>
-                    
-                    <button class="action-btn" id="eval-btn" data-i18n="btn_eval" style="width: 100%;">Evaluate Portfolio 🔍</button>
-                    
-                </div>
-
-                <!-- Global Manual BCTC Alert for Optimizer/Evaluator -->
-                <div id="manual-bctc-alert" style="display: none; padding: 10px; margin-bottom: 15px; border-radius: 8px; background: rgba(0, 255, 170, 0.05); border: 1px solid rgba(0, 255, 170, 0.4); box-shadow: 0 0 10px rgba(0, 255, 170, 0.1);">
-                    <div style="font-size: 0.8rem; color: #00ffaa; font-weight: bold; margin-bottom: 5px;">✨ [BETA] TÀI LIỆU AI CỐ TRỢ (RAG)</div>
-                    <p id="bctc-alert-msg" style="font-size: 0.75rem; margin-top: 0; color: #d1d5db;">Phát hiện kho dữ liệu có sẵn BCTC phân tích chuyên sâu cho: <strong id="bctc-alert-tickers" style="color: white;">--</strong>.</p>
-                    <label style="font-size: 0.75rem; color: white; display: flex; align-items: center; cursor: pointer;">
-                        <input type="checkbox" id="use-manual-bctc-checkbox" checked style="margin-right: 5px;">
-                        <span data-i18n="use_bctc_cb">Đính kèm vào Prompt (AI tốn thêm ~15s)</span>
-                    </label>
-                </div>
-
-                <!-- Mode 3: Financials -->
-                <div id="mode-financial" style="display: none;">
-                    <h3 data-i18n="fin_title">Tra Cứu BCTC</h3>
-                    <div class="input-group">
-                        <label data-i18n="fin_ticker_label">Mã Cổ phiếu</label>
-                        <input type="text" id="fin-ticker-input" placeholder="VD: FPT" class="glass-input" data-i18n-ph="fin_ticker_ph">
-                    </div>
-                    <button class="action-btn" id="fin-view-btn" data-i18n="btn_fetch_fin" style="width: 100%;">Fetch Data</button>
-                </div>
-            </div>
-            <div style="margin-top: 20px; text-align: center;">
-                <button id="btn-donate-sidebar" style="width: 100%; background: rgba(245,158,11,0.1); border: 1px solid #F59E0B; color: #F59E0B; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s ease;">
-                    <span data-i18n="btn_donate_sb">Ủng hộ / Donate ☕</span>
-                </button>
-            </div>
-            
-            <p class="footer-text">Engineered by Doan Nguyen Tri</p>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <header class="top-nav glass-panel">
-                <h2 data-i18n="main_title">Portfolio Status</h2>
-                <div class="status-indicator">
-                    <span class="status-dot green"></span>
-                    <span id="api-status" data-i18n="status_connected">Server Connected</span>
                 </div>
             </header>
-            
-            <div id="view-quant">
-                <div class="bento-grid">
-                <!-- Data Card -->
-                <div class="card glass-panel span-2" id="main-chart-card">
-                    <h3 data-i18n="chart_title">Efficient Frontier (Demo)</h3>
-                    <p class="caption" data-i18n="chart_desc">High-performance charts rendered natively via Python API.</p>
-                    <div id="chart-container" style="width: 100%; height: 350px;">
-                        <!-- Initial Welcome State -->
-                        <div id="welcome-message" class="welcome-container">
-                            <div class="welcome-icon">✦</div>
-                            <h4 data-i18n="welcome_title">Welcome to DNT Quant Lab</h4>
-                            <p data-i18n="welcome_desc">Enter your investment parameters and run the simulation to generate an AI-optimized portfolio.</p>
-                        </div>
-                        <!-- Plotly chart will be injected here -->
-                    </div>
-                </div>
-                
-                <!-- Metric Cards -->
-                <div class="card glass-panel metric-card">
-                    <h4 data-i18n="metric_proj">Projected Value</h4>
-                    <h2 class="neon-text" id="display-capital" style="margin-bottom: 5px;">0₫</h2>
-                    <p class="caption" id="ci-text" style="font-size: 0.8rem; margin: 0; color: #00ffaa;">Xác suất 95%: [Đang tính...]</p>
-                </div>
-                <div class="card glass-panel metric-card">
-                    <h4 data-i18n="metric_risk">Max Risk (VaR)</h4>
-                    <h2 class="neon-alert" id="display-risk" style="margin-bottom: 5px;">-0%</h2>
-                    <p class="caption" id="stress-text" style="font-size: 0.8rem; margin: 0; color: var(--neon-alert); display: none;">Sập -5% VNI: Bốc hơi 0₫</p>
-                </div>
+        </div>
 
-                <!-- Backtest Card -->
-                <div class="card glass-panel span-2" id="backtest-card" style="display: none; animation: ai-card-appear 0.5s ease both;">
-                    <h3 data-i18n="backtest_title">Historical Performance (Backtest)</h3>
-                    <p class="caption" id="backtest-desc" data-i18n="backtest_desc">Lợi nhuận tích lũy của danh mục so với VNINDEX trong quá khứ.</p>
-                    <div id="backtest-chart-container" style="width: 100%; height: 350px;"></div>
-                </div>
-
-                <!-- Asset Allocation Card -->
-                <div class="card glass-panel span-2" id="pie-card" style="display: none; animation: ai-card-appear 0.5s ease both;">
-                    <h3 data-i18n="allocation_title">Optimal Asset Allocation</h3>
-                    <p class="caption" id="pie-desc" data-i18n="allocation_desc">Tỉ trọng phân bổ vốn chi tiết cho từng mã cổ phiếu.</p>
-                    <div id="pie-chart-container" style="width: 100%; height: 350px;"></div>
-                </div>
-
-                <!-- Trading Signals Card -->
-                <div class="card glass-panel span-2" id="trading-signals-card" style="display: none; animation: ai-card-appear 0.5s ease both;">
-                    <h3 data-i18n="signals_title">Tín Hiệu Giao Dịch Thời Gian Thực</h3>
-                    <p class="caption" data-i18n="signals_desc">Tín hiệu Phân tích Kỹ thuật (SMA Crossover) & Đặt lệnh mua bán liên thông VPS.</p>
-                    <div class="table-responsive" style="margin-top: 15px; margin-bottom: 5px; max-height: 300px; overflow-y: auto;">
-                        <table style="width: 100%; text-align: left; border-collapse: collapse;">
-                            <thead>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); font-size: 0.9rem;">
-                                    <th style="padding: 10px;" data-i18n="sig_col_ticker">Mã CP</th>
-                                    <th style="padding: 10px;" data-i18n="sig_col_signal">Tín Hiệu</th>
-                                    <th style="padding: 10px;" data-i18n="sig_col_vol">Khối Lượng Đề Xuất</th>
-                                    <th style="padding: 10px; text-align: right;" data-i18n="sig_col_action">Khớp Lệnh</th>
-                                </tr>
-                            </thead>
-                            <tbody id="trading-signals-tbody" style="font-size: 0.95rem;">
-                                <!-- JS Injected -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Raw Prices Card -->
-                <div class="card glass-panel" id="raw-prices-card" style="display: none; animation: ai-card-appear 0.5s ease both;">
-                    <h3 data-i18n="raw_price_title">Bảng Giá Đóng cửa</h3>
-                    <p class="caption" style="font-size: 0.8rem; margin-top: 2px; margin-bottom: 0px; color: var(--text-muted);">
-                        <span data-i18n="last_updated">Cập nhật lần cuối: </span>
-                        <strong id="timestamp-date" style="color: var(--neon);">--</strong>
-                    </p>
-                    <div class="table-responsive" style="margin-top: 15px; max-height: 250px; overflow-y: auto;">
-
-                        <table style="width: 100%; text-align: left; border-collapse: collapse;">
-                            <thead>
-                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); font-size: 0.9rem;">
-                                    <th style="padding: 8px;">Mã CP</th>
-                                    <th style="padding: 8px;">Giá Hiện Hành</th>
-                                </tr>
-                            </thead>
-                            <tbody id="raw-prices-tbody" style="font-size: 0.95rem;">
-                                <!-- JS Injected -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Advanced Metrics Card -->
-                <div class="card glass-panel" id="advanced-metrics-card" style="display: none; animation: ai-card-appear 0.5s ease both;">
-                    <h3 data-i18n="adv_metrics_title">Chỉ số Quant Nâng cao</h3>
-                    <div class="metrics-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-                        <div class="metric-box" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
-                            <span class="caption" style="font-size: 0.75rem;">Beta (vs VNINDEX)</span><br>
-                            <strong id="metric-beta" class="neon-text">--</strong>
-                        </div>
-                        <div class="metric-box" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
-                            <span class="caption" style="font-size: 0.75rem;">Sortino Ratio</span><br>
-                            <strong id="metric-sortino" style="color: #00B8FF;">--</strong>
-                        </div>
-                        <div class="metric-box" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
-                            <span class="caption" style="font-size: 0.75rem;">Treynor Ratio</span><br>
-                            <strong id="metric-treynor" style="color: #F59E0B;">--</strong>
-                        </div>
-                        <div class="metric-box" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
-                            <span class="caption" style="font-size: 0.75rem;">R-Squared</span><br>
-                            <strong id="metric-rsq" style="color: #8B5CF6;">--</strong>
-                        </div>
-                        <div class="metric-box" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
-                            <span class="caption" style="font-size: 0.75rem;">Calmar Ratio</span><br>
-                            <strong id="metric-calmar" style="color: white;">--</strong>
-                        </div>
-                        <div class="metric-box" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
-                            <span class="caption" style="font-size: 0.75rem;">Max Drawdown</span><br>
-                            <strong id="metric-mdd" class="neon-alert">--</strong>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Live News Card -->
-                <div class="card glass-panel span-2" id="live-news-card" style="display: none; animation: ai-card-appear 0.5s ease both;">
-                    <h3>Bản tin Thị trường Thể thao (Live) <span style="font-size: 0.8rem; border: 1px solid #F59E0B; color: #F59E0B; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">vnstock</span></h3>
-                    <p class="caption" style="font-size: 0.8rem; margin: 0; color: #00ffaa;">Đã lấy dữ liệu tin tức <strong id="news-tickers-list" style="color: white;">--</strong> thành công.</p>
-                    <div id="live-news-list" style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
-                        <!-- JS Injected -->
-                    </div>
-                </div>
-
-                <!-- AI Advice Panel — full width, auto-triggered after simulation -->
-                <div class="card glass-panel span-2 ai-advice-card" id="ai-advice-card" style="display: none; position: relative;">
-                    <div class="ai-panel-header" style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <h3 class="ai-panel-title">
-                                <span class="ai-gem-icon">✦</span>
-                                <span data-i18n="ai_title">Gemini AI — Cố Vấn Tích Hợp (Quant + BCTC)</span>
-                            </h3>
-                            <p class="caption" data-i18n="ai_subtitle">Phân tích chuyên sâu dựa trên kịch bản Quant & Báo cáo Sức khỏe Tài chính</p>
-                        </div>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <button id="btn-export-pdf" class="action-btn" data-i18n="btn_export_pdf" style="background:var(--neon-green); padding: 5px 15px; font-size: 0.85rem; display: none;">⬇️ Tải PDF</button>
-                            <div class="ai-badge" id="ai-badge">
-                                <span class="ai-badge-dot"></span>
-                                <span id="ai-badge-text" data-i18n="ai_analyzing">Đang phân tích...</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="ai-divider"></div>
-                    
-                    <!-- Khối nội dung sẽ được in PDF -->
-                    <div id="pdf-content-wrapper" style="border-radius: 8px;">
-                        <h2 style="display: none; text-align: center; color: #00FFAA; margin-bottom: 20px;" id="pdf-report-title" data-i18n="pdf_title">BÁO CÁO TƯ VẤN ĐẦU TƯ VIP</h2>
-                        <div class="ai-body">
-                            <!-- Loading skeleton -->
-                            <div class="ai-loading" id="ai-loading">
-                                <div class="ai-loading-dots">
-                                    <span></span><span></span><span></span>
-                                </div>
-                                <span data-i18n="ai_thinking">Gemini đang phân tích lượng hóa và BCTC...</span>
-                            </div>
-                            <!-- Actual AI text output -->
-                            <div class="ai-text" id="ai-text" style="font-size: 0.95rem; line-height: 1.6;"></div>
-                        </div>
-                    </div>
-                </div>
-
-                </div><!-- /.bento-grid -->
-            </div><!-- /#view-quant -->
-
-            <!-- View cho Financial (BCTC) -->
-            <div id="view-financial" style="display: none;">
-                <div class="bento-grid">
-                    <!-- Financial Report Card -->
-                    <div class="card glass-panel" id="fin-report-card" style="display: none; animation: ai-card-appear 0.5s ease both;">
-                        <h3 id="fin-card-title"><span data-i18n="fin_card_title">Báo Cáo Tài Chính: </span><span id="fin-ticker" class="neon-text">--</span></h3>
-                        <p class="caption" data-i18n="fin_desc">Dữ liệu cơ bản từ TCBS. Mở khóa để xem các chỉ số định giá & hiệu quả HĐKD.</p>
-                        <div class="metrics-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-                        
-                        <div class="metric-box" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
-                            <span class="caption" style="font-size: 0.75rem;">Ngành nghề</span><br>
-                            <strong id="fin-industry" style="color: #00B8FF; font-size: 0.9rem;">--</strong>
-                        </div>
-                        <div class="metric-box" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
-                            <span class="caption" style="font-size: 0.75rem;">Vốn hóa (Tỷ VND)</span><br>
-                            <strong id="fin-marketcap" style="color: white;">--</strong>
-                        </div>
-                        <div class="metric-box" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px;">
-                            <span class="caption" style="font-size: 0.75rem;">P/E | P/B</span><br>
-                            <strong id="fin-pepb" style="color: white;">--</strong>
-                        </div>
-                        <!-- Unlocked metrics (previously Paywall) -->
-                        <div class="metric-box" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.4); box-shadow: 0 0 10px rgba(245, 158, 11, 0.1);">
-                            <span class="caption" style="font-size: 0.75rem;">Biên ROE | ROA</span><br>
-                            <strong id="fin-roe" style="color: #F59E0B;">--</strong>
-                        </div>
-                        <div class="metric-box" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.4); box-shadow: 0 0 10px rgba(245, 158, 11, 0.1);">
-                            <span class="caption" style="font-size: 0.75rem;">Nợ / Vốn CSH</span><br>
-                            <strong id="fin-debt" style="color: #8B5CF6;">--</strong>
-                        </div>
-                        <div class="metric-box" style="background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; border: 1px solid rgba(245, 158, 11, 0.4); box-shadow: 0 0 10px rgba(245, 158, 11, 0.1);">
-                            <span class="caption" style="font-size: 0.75rem;">Tăng trưởng LN</span><br>
-                            <strong id="fin-profit" style="color: #00ffaa;">--</strong>
-                        </div>
-
-                    </div>
-                </div>
-            </div><!-- /#view-financial -->
-            
-
-
-            <!-- AI Disclaimer -->
-            <div class="disclaimer-note glass-panel" style="margin-top: 1rem; padding: 15px; border-radius: 8px; font-size: 0.8rem; color: var(--text-muted); text-align: justify; border-left: 3px solid var(--neon-alert);">
-                <strong style="color: var(--neon-alert);" data-i18n="disclaimer_title">⚠️ Disclaimer:</strong> <span data-i18n="ai_disclaimer">AI analysis is strictly based on historical data...</span>
+        <!-- Main Content Area — replaced on every route -->
+        <main id="main-content">
+            <!-- Initial loading state -->
+            <div style="display:flex;align-items:center;justify-content:center;height:50vh;flex-direction:column;gap:1rem;color:var(--text-muted);">
+                <div style="width:40px;height:40px;border:3px solid rgba(0,255,170,0.15);border-top-color:#00ffaa;border-radius:50%;animation:spin 0.9s linear infinite;"></div>
+                <span style="font-size:0.9rem;">Đang khởi động DNT Quant Lab...</span>
             </div>
         </main>
     </div>
 
-    <!-- QR Donation Modal -->
-    <div id="qr-modal" style="display: none; position: fixed; z-index: 9999; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); align-items: center; justify-content: center;">
-        <div class="glass-panel" style="background: #111827; padding: 30px; border-radius: 12px; text-align: center; max-width: 450px; width: 90%; border: 1px solid rgba(255,255,255,0.1); position: relative;">
-            
-            <div id="donate-setup-view">
-                <h3 style="margin-top: 0; color: #F59E0B;" data-i18n="donate_title">Buy Me a Coffee ☕</h3>
-                <p style="font-size: 0.85rem; color: #D1D5DB; margin-bottom: 20px; line-height: 1.5; text-align: justify;" data-i18n="donate_msg">
-                    Vì đây là dự án cá nhân do sinh viên thực hiện nên em cần ít chi phí để duy trì server và token cho AI phân tích. Tất nhiên là không ép buộc và mọi truy cập đến trang web em đều rất hân hoan. Anh chị và các bạn có thể ủng hộ tùy tâm ạ ❤️
-                </p>
-                
-                <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap;">
-                    <button class="donate-amt-btn" data-amt="5000" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px; cursor: pointer; color: white;">5,000đ</button>
-                    <button class="donate-amt-btn" data-amt="10000" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px; cursor: pointer; color: white;">10,000đ</button>
-                    <button class="donate-amt-btn" data-amt="15000" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px; cursor: pointer; color: white;">15,000đ</button>
-                    <button id="btn-custom-amt" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px; cursor: pointer; color: white;" data-i18n="donate_custom">Tùy chọn</button>
-                </div>
-                
-                <div id="custom-amt-container" style="display: none; margin-bottom: 15px;">
-                    <input type="number" id="custom-amt-input" class="glass-input" style="width: 100%; text-align: center;" placeholder="Nhập số tiền (VNĐ)" data-i18n-ph="donate_custom_ph">
-                </div>
-                
-                <button id="btn-generate-qr" style="width: 100%; background: #F59E0B; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; color: black; margin-bottom: 15px;" data-i18n="btn_gen_qr">Tạo Mã QR</button>
-            </div>
-
-            <div id="donate-qr-view" style="display: none;">
-                <h3 style="margin-top: 0; color: #00FFAA;" data-i18n="donate_scan_title">Quét mã QR</h3>
-                <img id="vietqr-img" src="" alt="VietQR" style="width: 250px; height: 250px; border-radius: 8px; margin: 5px 0; border: 2px solid #F59E0B;">
-                <p style="font-size: 0.85rem; color: var(--neon);"><span class="loading-dots" data-i18n="polling_text">Đang chờ nhận thanh toán (Polling)...</span></p>
-            </div>
-
-            <div id="donate-thanks-view" style="display: none; padding: 20px 0;">
-                <div style="font-size: 40px; margin-bottom: 15px;">🎉</div>
-                <h3 style="color: #00FFAA;" data-i18n="donate_thanks_title">Giao dịch Thành công!</h3>
-                <p style="font-size: 0.95rem; color: white; line-height: 1.5;" data-i18n="donate_thanks_msg">Cảm ơn, rất biết ơn anh chị, em sẽ cố gắng phát triển hoàn thiện dự án này tốt nhất có thể ❤️</p>
-            </div>
-            
-            <button id="close-qr-btn" data-i18n="btn_close_qr" style="width: 100%; margin-top: 5px; padding: 10px; background: transparent; border: 1px solid var(--text-muted); color: white; border-radius: 6px; cursor: pointer;">Hủy / Đóng</button>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
+    <!-- SPA Entry Point: ES Module -->
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>

@@ -1,17 +1,17 @@
-# DNT Workspace - Technical Documentation
+# NVT Workspace - Technical Documentation
 
 ## Overview
 
 This repository is structured as a monorepo containing three highly interconnected sub-projects:
-1. **DNT Portfolio Website (`/docs`)**: The primary user-facing landing page and virtual assistant.
+1. **NVT Portfolio Website (`/docs`)**: The primary user-facing landing page and virtual assistant.
 2. **VN Stocks Quant Analyzer (`/quant-engine/vn_stocks_quant`)**: The data pipeline system and market-wide quantitative risk analyzer.
-3. **DNT Quant Lab (`/quant-engine/dnt_quant_lab`)**: The simulation and portfolio optimization laboratory integrated with Artificial Intelligence (Gemini API).
+3. **NVT Quant Lab (`/quant-engine/dnt_quant_lab`)**: The simulation and portfolio optimization laboratory integrated with Artificial Intelligence (Gemini API).
 
 Below is detailed technical documentation regarding the design philosophy and the solutions implemented to solve various engineering challenges within each project.
 
 ---
 
-## 1. DNT Portfolio Website
+## 1. NVT Portfolio Website
 
 This frontend project serves as the entry point connecting users to the quantitative background projects.
 
@@ -23,7 +23,7 @@ This frontend project serves as the entry point connecting users to the quantita
 
 ## 2. VN Stocks Quant Analyzer
 
-This project acts as the foundational database and technical precursor for the DNT Quant Lab. Initially, the business logic was limited to comparing the Log-Return function of 30 stocks in the VN30 basket with the VNINDEX to gauge stock correlation with the broader market. The project has since evolved into an independent, advanced quantitative analysis system covering the entire stock exchange.
+This project acts as the foundational database and technical precursor for the NVT Quant Lab. Initially, the business logic was limited to comparing the Log-Return function of 30 stocks in the VN30 basket with the VNINDEX to gauge stock correlation with the broader market. The project has since evolved into an independent, advanced quantitative analysis system covering the entire stock exchange.
 
 **Notable Data Pipeline Solutions:**
 - **Automated Data Fetching Pipeline:** To eliminate dependencies and missing data issues associated with third-party libraries (like `yfinance` or `vnstock`), I developed a Custom API Fetcher. This pipeline uses the `requests` library to extract OHLCV data directly from the public charts of the DNSE (Entrade) system in JSON format. This process runs anonymously, free of charge, and has no Request-Key limitations.
@@ -32,7 +32,7 @@ This project acts as the foundational database and technical precursor for the D
 
 ---
 
-## 3. DNT Quant Lab
+## 3. NVT Quant Lab
 
 This is the core computational center, built with the objective of providing automated advisory solutions for retail and beginner (F0) investors. The system's workflow involves: calculating quantitative metrics, running stochastic simulations (Backtesting), and feeding the final data into the Gemini API's natural language processing pipeline to generate actionable interpretations.
 

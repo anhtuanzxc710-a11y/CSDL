@@ -65,16 +65,6 @@ const I18N = {
         'fin_debt': 'Debt / Equity',
         'fin_profit': 'Profit Growth',
         'btn_unlock': 'Unlock',
-        'btn_donate_sb': 'Donate ☕',
-        'donate_title': 'Buy Me a Coffee ☕',
-        'donate_msg': 'Since this is a personal student project, I need funding to maintain servers and AI analysis tokens. It is entirely optional, and every visit to the website is greatly appreciated. If you wish, you can donate any amount ❤️',
-        'donate_custom': 'Custom',
-        'donate_custom_ph': 'Enter amount (VND)',
-        'btn_gen_qr': 'Generate QR Code',
-        'donate_scan_title': 'Scan QR Code',
-        'donate_thanks_title': 'Transaction Successful!',
-        'donate_thanks_msg': 'Thank you so much! I am very grateful and will continue to develop and perfect this project as best as I can ❤️',
-        'btn_close_qr': 'Cancel / Close',
         'polling_text': 'Waiting for payment (Polling)...',
         'btn_export_pdf': '⬇️ Download PDF',
         'pdf_title': 'VIP INVESTMENT ADVISORY REPORT',
@@ -153,16 +143,6 @@ const I18N = {
         'fin_debt': 'Nợ / Vốn CSH',
         'fin_profit': 'Tăng trưởng LN',
         'btn_unlock': 'Mở khóa',
-        'btn_donate_sb': 'Ủng hộ / Donate ☕',
-        'donate_title': 'Buy Me a Coffee ☕',
-        'donate_msg': 'Vì đây là dự án cá nhân do sinh viên thực hiện nên em cần ít chi phí để duy trì server và token cho AI phân tích. Tất nhiên là không ép buộc và mọi truy cập đến trang web em đều rất hân hoan. Anh chị và các bạn có thể ủng hộ tùy tâm ạ ❤️',
-        'donate_custom': 'Tùy chọn',
-        'donate_custom_ph': 'Nhập số tiền (VNĐ)',
-        'btn_gen_qr': 'Tạo Mã QR',
-        'donate_scan_title': 'Quét mã QR',
-        'donate_thanks_title': 'Giao dịch Thành công!',
-        'donate_thanks_msg': 'Cảm ơn, rất biết ơn anh chị, em sẽ cố gắng phát triển hoàn thiện dự án này tốt nhất có thể ❤️',
-        'btn_close_qr': 'Hủy / Đóng',
         'polling_text': 'Đang chờ nhận thanh toán (Polling)...',
         'btn_export_pdf': '⬇️ Tải PDF',
         'pdf_title': 'BÁO CÁO TƯ VẤN ĐẦU TƯ VIP',
@@ -821,107 +801,4 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-
-    // --- Donation Modal Handle ---
-    const btnDonateSidebar = document.getElementById('btn-donate-sidebar');
-    const qrModal = document.getElementById('qr-modal');
-    const closeQr = document.getElementById('close-qr-btn');
-    const qrImg = document.getElementById('vietqr-img');
-    
-    // View containers inside Modal
-    const donateSetupView = document.getElementById('donate-setup-view');
-    const donateQrView = document.getElementById('donate-qr-view');
-    const donateThanksView = document.getElementById('donate-thanks-view');
-    
-    // Form elements
-    const customAmtContainer = document.getElementById('custom-amt-container');
-    const customAmtInput = document.getElementById('custom-amt-input');
-    const btnGenQr = document.getElementById('btn-generate-qr');
-    const btnCustomAmt = document.getElementById('btn-custom-amt');
-    let selectedAmount = 5000;
-
-    if (btnDonateSidebar) {
-        btnDonateSidebar.addEventListener('click', () => {
-            qrModal.style.display = 'flex';
-            donateSetupView.style.display = 'block';
-            donateQrView.style.display = 'none';
-            donateThanksView.style.display = 'none';
-            customAmtContainer.style.display = 'none';
-            selectedAmount = 5000; // Reset to default
-            
-            // Highlight default button
-            document.querySelectorAll('.donate-amt-btn').forEach(b => b.style.background = 'rgba(255,255,255,0.1)');
-            document.querySelector('.donate-amt-btn[data-amt="5000"]').style.background = 'rgba(245,158,11,0.5)';
-            btnCustomAmt.style.background = 'rgba(255,255,255,0.1)';
-        });
-    }
-
-    document.querySelectorAll('.donate-amt-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            selectedAmount = parseInt(e.target.getAttribute('data-amt'));
-            customAmtContainer.style.display = 'none';
-            
-            document.querySelectorAll('.donate-amt-btn').forEach(b => b.style.background = 'rgba(255,255,255,0.1)');
-            if(btnCustomAmt) btnCustomAmt.style.background = 'rgba(255,255,255,0.1)';
-            e.target.style.background = 'rgba(245,158,11,0.5)';
-        });
-    });
-
-    if (btnCustomAmt) {
-        btnCustomAmt.addEventListener('click', () => {
-            customAmtContainer.style.display = 'block';
-            selectedAmount = 0;
-            document.querySelectorAll('.donate-amt-btn').forEach(b => b.style.background = 'rgba(255,255,255,0.1)');
-            btnCustomAmt.style.background = 'rgba(245,158,11,0.5)';
-        });
-    }
-
-    if (btnGenQr) {
-        btnGenQr.addEventListener('click', () => {
-            if (customAmtContainer.style.display === 'block') {
-                selectedAmount = parseInt(customAmtInput.value);
-                if (!selectedAmount || selectedAmount < 2000) {
-                    alert("Vui lòng nhập số tiền hợp lệ (Tối thiểu 2000đ)!");
-                    return;
-                }
-            }
-            
-            // Generate VietQR Link
-            // STK: 1001213140604, Ngân hàng VPB (VPBank), DOAN NGUYEN TRI
-            const msg = `DNTLAB ${currentSessionId}`;
-            const qrUrl = `https://img.vietqr.io/image/VPB-1001213140604-compact2.jpg?amount=${selectedAmount}&addInfo=${msg}&accountName=DOAN%20NGUYEN%20TRI`;
-            qrImg.src = qrUrl;
-            
-            donateSetupView.style.display = 'none';
-            donateQrView.style.display = 'block';
-            
-            // Start Polling
-            startPaymentPolling();
-        });
-    }
-
-    if (closeQr) {
-        closeQr.addEventListener('click', () => {
-            qrModal.style.display = 'none';
-            if(pollingInterval) clearInterval(pollingInterval);
-        });
-    }
-
-    async function startPaymentPolling() {
-        if(pollingInterval) clearInterval(pollingInterval);
-        
-        pollingInterval = setInterval(async () => {
-            try {
-                const res = await fetch(`/api/payment-status?session_id=${currentSessionId}`);
-                const data = await res.json();
-                
-                if(data.paid) {
-                    clearInterval(pollingInterval);
-                    donateQrView.style.display = 'none';
-                    donateThanksView.style.display = 'block';
-                }
-            } catch(e) {}
-        }, 3000); // Mỗi 3 giây
-    }
-
 });

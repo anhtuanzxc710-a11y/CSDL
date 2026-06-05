@@ -11,3 +11,11 @@ requests-cache
 scikit-learn
 scipy
 backtrader==1.9.78.123
+sqlalchemy
+alembic
+passlib[bcrypt]
+python-jose[cryptography]
+email-validator
+pydantic-settings
+python-multipart
+pyodbc

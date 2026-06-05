@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dnt.</title>
+    <title>nvt.</title>
     <link rel="icon" href="assets/stats.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="style.css">
-    <meta name="author" content="Doan Nguyen Tri">
+    <meta name="author" content="NGUYỄN VĂN TUẤN">
 </head>
 <body>
     <div class="scroll-progress"></div>
@@ -21,7 +21,7 @@
     </div>
 
     <nav class="navbar">
-        <div class="logo">DNT<span class="accent">.</span></div>
+        <div class="logo">NVT<span class="accent">.</span></div>
 
         <div class="lang-switch-container">
             <input type="checkbox" id="lang-toggle" class="lang-checkbox">
@@ -35,36 +35,14 @@
                 </span>
             </label>
         </div>
-
-        <ul class="nav-links">
-            <li><a href="#hero" data-i18n="nav_home">Home</a></li>
-            <li><a href="#about" data-i18n="nav_about">About</a></li>
-            <li><a href="#featured" data-i18n="nav_live">Live App</a></li>
-            <li><a href="#projects" data-i18n="nav_research">Research</a></li>
-            <li><a href="#contact" data-i18n="nav_contact">Contact</a></li>
-            <li>
-                <a href="CV_Doan_Nguyen_Tri_Quant_Analyst.pdf" download class="btn-cv-nav" style="display: inline-flex; align-items: center; gap: 6px;">
-                    <i class="ph ph-file-pdf" style="font-size: 1.1rem;"></i>
-                    <span data-i18n="nav_cv">Download CV</span>
-                </a>
-            </li>
-        </ul>
     </nav>
 
     <section id="hero" class="section reveal">
-        <p class="greeting" data-i18n="hero_greeting">Hi, I'm <span class="accent">Doan Nguyen Tri</span> 👋</p>
+        <p class="greeting" data-i18n="hero_greeting">Hi, This is <span class="accent">NGUYỄN VĂN TUẤN</span> 👋</p>
         <h1 class="hero-title">
-            <span data-i18n="hero_role">Data Science student <br> specializing in </span><span class="typed-text"></span><span class="cursor">&nbsp;</span>
+            <span data-i18n="hero_role">Fintech student <br> specializing in </span><span class="typed-text"></span><span class="cursor">&nbsp;</span>
         </h1>
         <p class="hero-desc" data-i18n="hero_desc">I specialize in the complete data lifecycle—from scraping and wrangling messy datasets to conducting rigorous exploratory data analysis (EDA). I build data-driven financial models and algorithmic tools that bridge the gap between complex quantitative research and actionable investment strategies.</p>
-        
-        <div class="hero-cta">
-            <a href="#featured" class="btn btn-primary" data-i18n="hero_btn_live">Try live dashboard</a>
-            <a href="CV_Doan_Nguyen_Tri_Quant_Analyst.pdf" download class="btn btn-outline">
-                <i class="ph ph-file-pdf"></i>
-                <span data-i18n="hero_btn_cv">Download CV</span>
-            </a>
-        </div>
 
         <a href="#about" class="scroll-indicator">
             <div class="mouse">
@@ -101,13 +79,13 @@
     </section>
 
     <section id="featured" class="section reveal">
-        <h2 id="featured-title" class="section-title" data-i18n="featured_title_quantlab">Featured: DNT Quant Lab API</h2>
+        <h2 id="featured-title" class="section-title" data-i18n="featured_title_quantlab">Featured: NVT Quant Lab API</h2>
         <p id="featured-subtitle" class="section-subtitle" data-i18n="featured_sub_quantlab">AI-powered portfolio optimization & risk analysis with Monte Carlo simulation.</p>
         
         <div class="project-switcher-container">
             <div class="project-switcher">
                 <button class="switcher-btn active" data-proj="quantlab">
-                    <i class="ph ph-cpu"></i> DNT Quant Lab (FastAPI)
+                    <i class="ph ph-cpu"></i> NVT Quant Lab (FastAPI)
                 </button>
                 <button class="switcher-btn" data-proj="vn30">
                     <i class="ph ph-chart-line-up"></i> VN STOCKS Quant (Streamlit)
@@ -120,7 +98,7 @@
                 <span class="dot red"></span>
                 <span class="dot yellow"></span>
                 <span class="dot green"></span>
-                <span class="iframe-title" id="iframe-browser-title" data-i18n="iframe_title_quantlab">DNT Quant Lab - Live Server</span>
+                <span class="iframe-title" id="iframe-browser-title" data-i18n="iframe_title_quantlab">NVT Quant Lab - Live Server</span>
             </div>
             
             <div class="iframe-wrapper">
@@ -130,7 +108,9 @@
                     allowtransparency="true"
                     allowfullscreen>
                 </iframe>
+                <div class="donate-blocker"></div>
             </div>
+            
         </div>
     </section>
 
@@ -142,62 +122,38 @@
                 <h3>QuantFolio Optimization</h3>
                 <div class="tech-stack">Python • SciPy • Plotly</div>
                 <p data-i18n="proj_1_desc">A portfolio optimization tool using the Capital Asset Pricing Model (CAPM) and Monte Carlo simulation to identify the efficient frontier.</p>
-                <a href="https://github.com/carrot1301/QuantFolio-Optimization" class="btn btn-outline btn-sm" target="_blank">
-                    <i class="ph ph-github-logo"></i>
-                    <span data-i18n="view_code">View Code</span>
-                </a>
             </div>
 
             <div class="project-card card">
                 <h3>FX Macro Dynamics</h3>
                 <div class="tech-stack">Time Series • Statsmodels</div>
                 <p data-i18n="proj_2_desc">An empirical analysis project examining the macro-economic relationship and exchange rate dynamics between the USD and VND.</p>
-                <a href="https://github.com/carrot1301/FX-Macro-Dynamics-USD-VND-Driver-Analysis" class="btn btn-outline btn-sm" target="_blank">
-                    <i class="ph ph-github-logo"></i>
-                    <span data-i18n="view_code">View Code</span>
-                </a>
             </div>
 
             <div class="project-card card">
                 <h3>Adaptive Credit Scoring</h3>
                 <div class="tech-stack">Scikit-learn • Classification</div>
                 <p data-i18n="proj_3_desc">Developed a detailed credit scoring model involving synthetic data generation, rigorous feature engineering, and policy simulation.</p>
-                <a href="https://github.com/carrot1301/Latent-Default-Prediction-System" class="btn btn-outline btn-sm" target="_blank">
-                    <i class="ph ph-github-logo"></i>
-                    <span data-i18n="view_code">View Code</span>
-                </a>
             </div>
-        </div> 
-        
-        <div class="github-cta reveal">
-            <p data-i18n="github_cta_text">Hungry for more? Explore all my repositories and experimental scripts.</p>
-            <a href="https://github.com/carrot1301?tab=repositories" target="_blank" class="btn btn-github-more">
-                <i class="ph ph-github-logo"></i>
-                <span data-i18n="github_cta_btn">View more on GitHub</span>
-            </a>
         </div>
     </section>
-
     <section id="contact" class="section reveal">
         <h2 class="section-title" data-i18n="contact_title">Get In Touch</h2>
-        <p class="section-subtitle" data-i18n="contact_sub">Currently seeking Quantitative Analyst / Data Analyst internship opportunities.</p>
+        <p class="section-subtitle" data-i18n="contact_sub">Currently empty.</p>
         <div class="contact-links card">
-            <a href="mailto:doantri12343@gmail.com" class="contact-item">
-                <i class="ph ph-envelope-simple"></i> Doantri12343@gmail.com
+            <a href="mailto:tuan7105@gmail.com" class="contact-item">
+                <i class="ph ph-envelope-simple"></i> tuan7105@gmail.com
             </a>
-            <a href="https://github.com/carrot1301" target="_blank" class="contact-item">
+            <a href="https://github.com/anhtuanzxc710-a11y" target="_blank" class="contact-item">
                 <i class="ph ph-github-logo"></i> GitHub
-            </a>
-            <a href="https://www.linkedin.com/in/nguyen-tri-doan-629408251/" target="_blank" class="contact-item">
-                <i class="ph ph-linkedin-logo"></i> LinkedIn
             </a>
         </div>
     </section>
 
     <footer>
         <div class="footer-content">
-            <p data-i18n="footer_rights">© 2026 <strong>DOAN NGUYEN TRI</strong>. All Rights Reserved.</p>
-            <p class="footer-sub" data-i18n="footer_sub">Designed & Developed by Tri Doan | Built for Quantitative Finance</p>
+            <p data-i18n="footer_rights">© 2026 <strong>NGUYỄN VĂN TUẤN</strong>. All Rights Reserved.</p>
+            <p class="footer-sub" data-i18n="footer_sub">Designed & Developed by NGUYỄN VĂN TUẤN | Built for Quantitative Finance</p>
         </div>
     </footer>
 
@@ -209,11 +165,11 @@
         
         <div id="chat-window" class="chat-window hidden">
             <div class="chat-header">
-                <span class="bot-name">DNT AI Assistant <span class="dot green"></span></span>
+                <span class="bot-name">NVT AI Assistant <span class="dot green"></span></span>
                 <button id="close-chat-btn"><i class="ph ph-x"></i></button>
             </div>
             <div id="chat-messages" class="chat-messages">
-                <div class="message bot" data-i18n="chat_welcome">Xin chào! Mình là trợ lý AI của Trí. Bạn có câu hỏi gì không?</div>
+                <div class="message bot" data-i18n="chat_welcome">Xin chào! Mình là trợ lý AI của NGUYỄN VĂN TUẤN. Bạn có câu hỏi gì không?</div>
             </div>
             <div class="chat-input-area">
                 <input type="text" id="chat-input" data-i18n-placeholder="chat_placeholder" placeholder="Đợi bạn hỏi..." />

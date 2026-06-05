@@ -1,17 +1,17 @@
-# DNT Workspace - Technical Documentation
+# NVT Workspace - Technical Documentation
 
 ## Giới thiệu Tổng quan
 
 Repository này chứa không gian làm việc được tổ chức theo cấu trúc monorepo, bao gồm ba phân hệ dự án chính có tính liên kết chặt chẽ với nhau:
-1. **DNT Portfolio Website (`/docs`)**: Giao diện cổng thông tin người dùng (Landing Page) và trợ lý ảo.
+1. **NVT Portfolio Website (`/docs`)**: Giao diện cổng thông tin người dùng (Landing Page) và trợ lý ảo.
 2. **VN Stocks Quant Analyzer (`/quant-engine/vn_stocks_quant`)**: Hệ thống xử lý dữ liệu (Data Pipeline) và phân tích rủi ro định lượng thị trường.
-3. **DNT Quant Lab (`/quant-engine/dnt_quant_lab`)**: Hệ thống mô phỏng, tối ưu hóa danh mục đầu tư tích hợp Trí tuệ Nhân tạo (Gemini API).
+3. **NVT Quant Lab (`/quant-engine/dnt_quant_lab`)**: Hệ thống mô phỏng, tối ưu hóa danh mục đầu tư tích hợp Trí tuệ Nhân tạo (Gemini API).
 
 Dưới đây là tài liệu mô tả chi tiết về triết lý thiết kế và quá trình giải quyết các bài toán kỹ thuật bên trong từng dự án.
 
 ---
 
-## 1. DNT Portfolio Website
+## 1. NVT Portfolio Website
 
 Đây là dự án Frontend đóng vai trò trang chủ kết nối người dùng với các dự án phân tích phía sau.
 
@@ -23,7 +23,7 @@ Dưới đây là tài liệu mô tả chi tiết về triết lý thiết kế 
 
 ## 2. VN Stocks Quant Analyzer
 
-Dự án này là cơ sở dữ liệu và tiền đề kỹ thuật vững chắc để xây dựng DNT Quant Lab. Ban đầu, kịch bản nghiệp vụ chỉ giới hạn ở việc so sánh hàm số Log-Return của 30 cổ phiếu thuộc rổ VN30 với chỉ số VNINDEX, nhằm đo lường mức độ đồng pha của cổ phiếu so với thị trường chung. Tuy nhiên, dự án hiện tại đã được nâng cấp bóc tách thành hệ thống phân tích định lượng chuyên sâu cho toàn bộ sàn chứng khoán.
+Dự án này là cơ sở dữ liệu và tiền đề kỹ thuật vững chắc để xây dựng NVT Quant Lab. Ban đầu, kịch bản nghiệp vụ chỉ giới hạn ở việc so sánh hàm số Log-Return của 30 cổ phiếu thuộc rổ VN30 với chỉ số VNINDEX, nhằm đo lường mức độ đồng pha của cổ phiếu so với thị trường chung. Tuy nhiên, dự án hiện tại đã được nâng cấp bóc tách thành hệ thống phân tích định lượng chuyên sâu cho toàn bộ sàn chứng khoán.
 
 **Các giải pháp xử lý Dữ liệu (Data Pipeline) nổi bật:**
 - **Tự động hóa luồng trích xuất dữ liệu:** Để loại bỏ sự phụ thuộc và các lỗi thiếu hụt dữ liệu từ các thư viện bên thứ ba (như `yfinance` hay `vnstock`), em đã tự phát triển một Custom API Fetcher. Luồng fetcher này sử dụng thư viện `requests` để trích xuất dữ liệu OHLCV trực tiếp từ biểu đồ Public của hệ thống DNSE (Entrade) dưới dạng JSON. Luồng chạy hoàn toàn ẩn danh, miễn phí và không có giới hạn Request-Key.
@@ -32,7 +32,7 @@ Dự án này là cơ sở dữ liệu và tiền đề kỹ thuật vững ch�
 
 ---
 
-## 3. DNT Quant Lab
+## 3. NVT Quant Lab
 
 Đây là trung tâm tính toán cốt lõi, được xây dựng với mục tiêu cung cấp giải pháp tư vấn tự động cho nhóm nhà đầu tư cá nhân và F0. Quy trình hoạt động của hệ thống bao gồm: tính toán các chỉ số định lượng, chạy mô phỏng ngẫu nhiên (Backtesting), và chuyển giao dữ liệu cuối cùng vào luồng phân tích ngôn ngữ tự nhiên của Gemini API để đưa ra diễn giải quyết định.
 
