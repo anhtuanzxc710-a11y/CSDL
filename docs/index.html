@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>nvt.</title>
+    <link rel="icon" href="assets/stats.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="style.css">
+    <meta name="author" content="NGUYỄN VĂN TUẤN">
+</head>
+<body>
+    <div class="scroll-progress"></div>
+
+    <div class="video-bg-container">
+        <video muted playsinline class="video-bg" id="scrollVideo">
+            <source src="assets/background.mp4" type="video/mp4">
+        </video>
+        <div class="video-overlay"></div>
+    </div>
+
+    <nav class="navbar">
+        <div class="logo">NVT<span class="accent">.</span></div>
+
+        <div class="lang-switch-container">
+            <input type="checkbox" id="lang-toggle" class="lang-checkbox">
+            <label for="lang-toggle" class="lang-label">
+                <div class="lang-ball"></div>
+                <span class="lang-icon vi-icon">
+                    <img src="https://flagcdn.com/w20/vn.png" width="20" alt="VN">
+                </span>
+                <span class="lang-icon en-icon">
+                    <img src="https://flagcdn.com/w20/gb.png" width="20" alt="EN">
+                </span>
+            </label>
+        </div>
+    </nav>
+
+    <section id="hero" class="section reveal">
+        <p class="greeting" data-i18n="hero_greeting">Hi, This is <span class="accent">NGUYỄN VĂN TUẤN</span> 👋</p>
+        <h1 class="hero-title">
+            <span data-i18n="hero_role">Fintech student <br> specializing in </span><span class="typed-text"></span><span class="cursor">&nbsp;</span>
+        </h1>
+        <p class="hero-desc" data-i18n="hero_desc">I specialize in the complete data lifecycle—from scraping and wrangling messy datasets to conducting rigorous exploratory data analysis (EDA). I build data-driven financial models and algorithmic tools that bridge the gap between complex quantitative research and actionable investment strategies.</p>
+
+        <a href="#about" class="scroll-indicator">
+            <div class="mouse">
+                <div class="wheel"></div>
+            </div>
+            <p data-i18n="scroll_down">Scroll Down</p>
+        </a>
+    </section>
+
+    <section id="about" class="section reveal">
+        <h2 class="section-title" data-i18n="about_title">About Me</h2>
+        <div class="about-content card">
+            <p data-i18n="about_desc">I am a final-year Data Science student at the <strong>University of Economics and Finance (UEF)</strong>, where I've developed a deep-rooted passion for <strong>Financial Data Analysis</strong>. My journey is driven by an insatiable curiosity for how data intersects with global markets.
+            <br><br>
+            Beyond the numbers, I love exploring the 'creative' side of tech. I've taught myself <strong>Web Programming and Design</strong> to ensure my analytical models aren't just accurate, but also beautifully presented and user-friendly. I'm a firm believer in being a lifelong learner, always eager to pick up new tools—from complex algorithmic trading strategies to the latest web animations—bridging the gap between rigorous finance and modern technology.</p>
+            
+            <div class="skills-grid">
+                <div class="skill-tag">Python & SQL</div>
+                <div class="skill-tag">Web Dev (HTML/CSS/JS)</div>
+                <div class="skill-tag">Pandas / NumPy</div>
+                <div class="skill-tag">Financial Modeling</div>
+                <div class="skill-tag">Time Series Analysis</div>
+                <div class="skill-tag">CAPM & Optimization</div>
+            </div>
+
+            <div class="ai-agent-cta-frame reveal fade-up">
+                <p data-i18n="ai_cta_text">Curious about my other secret skills or want to chat with my virtual self?</p>
+                <button id="about-ai-cta-btn" class="btn-ai-cta">
+                    <i class="ph ph-robot"></i>
+                    <span data-i18n="ai_cta_btn">More about me with my AI Agent</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="featured" class="section reveal">
+        <h2 id="featured-title" class="section-title" data-i18n="featured_title_quantlab">Featured: NVT Quant Lab API</h2>
+        <p id="featured-subtitle" class="section-subtitle" data-i18n="featured_sub_quantlab">AI-powered portfolio optimization & risk analysis with Monte Carlo simulation.</p>
+        
+        <div class="project-switcher-container">
+            <div class="project-switcher">
+                <button class="switcher-btn active" data-proj="quantlab">
+                    <i class="ph ph-cpu"></i> NVT Quant Lab (FastAPI)
+                </button>
+                <button class="switcher-btn" data-proj="vn30">
+                    <i class="ph ph-chart-line-up"></i> VN STOCKS Quant (Streamlit)
+                </button>
+            </div>
+        </div>
+
+        <div class="iframe-container card">
+            <div class="iframe-header">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+                <span class="iframe-title" id="iframe-browser-title" data-i18n="iframe_title_quantlab">NVT Quant Lab - Live Server</span>
+            </div>
+            
+            <div class="iframe-wrapper">
+                <iframe id="featured-iframe"
+                    src="https://interested-kathryn-tri1301-71097f9c.koyeb.app/" 
+                    style="width: 100%; height: 100%; border: none; display: block; background: transparent;"
+                    allowtransparency="true"
+                    allowfullscreen>
+                </iframe>
+                <div class="donate-blocker"></div>
+            </div>
+            
+        </div>
+    </section>
+
+    <section id="projects" class="section reveal">
+        <h2 class="section-title" data-i18n="projects_title">Other Analytical Projects</h2>
+        
+        <div class="projects-grid">
+            <div class="project-card card">
+                <h3>QuantFolio Optimization</h3>
+                <div class="tech-stack">Python • SciPy • Plotly</div>
+                <p data-i18n="proj_1_desc">A portfolio optimization tool using the Capital Asset Pricing Model (CAPM) and Monte Carlo simulation to identify the efficient frontier.</p>
+            </div>
+
+            <div class="project-card card">
+                <h3>FX Macro Dynamics</h3>
+                <div class="tech-stack">Time Series • Statsmodels</div>
+                <p data-i18n="proj_2_desc">An empirical analysis project examining the macro-economic relationship and exchange rate dynamics between the USD and VND.</p>
+            </div>
+
+            <div class="project-card card">
+                <h3>Adaptive Credit Scoring</h3>
+                <div class="tech-stack">Scikit-learn • Classification</div>
+                <p data-i18n="proj_3_desc">Developed a detailed credit scoring model involving synthetic data generation, rigorous feature engineering, and policy simulation.</p>
+            </div>
+        </div>
+    </section>
+    <section id="contact" class="section reveal">
+        <h2 class="section-title" data-i18n="contact_title">Get In Touch</h2>
+        <p class="section-subtitle" data-i18n="contact_sub">Currently empty.</p>
+        <div class="contact-links card">
+            <a href="mailto:tuan7105@gmail.com" class="contact-item">
+                <i class="ph ph-envelope-simple"></i> tuan7105@gmail.com
+            </a>
+            <a href="https://github.com/anhtuanzxc710-a11y" target="_blank" class="contact-item">
+                <i class="ph ph-github-logo"></i> GitHub
+            </a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <p data-i18n="footer_rights">© 2026 <strong>NGUYỄN VĂN TUẤN</strong>. All Rights Reserved.</p>
+            <p class="footer-sub" data-i18n="footer_sub">Designed & Developed by NGUYỄN VĂN TUẤN | Built for Quantitative Finance</p>
+        </div>
+    </footer>
+
+    <div class="chatbot-container">
+        <button id="chat-toggle-btn" class="chat-toggle-btn">
+            <div id="siri-orb" class="siri-sphere hidden"></div>
+            <i class="ph ph-robot" id="robot-icon"></i>
+        </button>
+        
+        <div id="chat-window" class="chat-window hidden">
+            <div class="chat-header">
+                <span class="bot-name">NVT AI Assistant <span class="dot green"></span></span>
+                <button id="close-chat-btn"><i class="ph ph-x"></i></button>
+            </div>
+            <div id="chat-messages" class="chat-messages">
+                <div class="message bot" data-i18n="chat_welcome">Xin chào! Mình là trợ lý AI của NGUYỄN VĂN TUẤN. Bạn có câu hỏi gì không?</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" data-i18n-placeholder="chat_placeholder" placeholder="Đợi bạn hỏi..." />
+                <button id="send-chat-btn"><i class="ph ph-paper-plane-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

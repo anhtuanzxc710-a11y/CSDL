@@ -1,0 +1,27 @@
+{
+    "FPT": {
+        "file": "fpt_2023.txt",
+        "date": "Q4/2023",
+        "desc": "Báo cáo Kết quả Kinh doanh Khối Công nghệ"
+    },
+    "ACB": {
+        "file": "acb_2025.txt",
+        "date": "Q4/2024",
+        "desc": "Báo cáo Tài chính tự thu thập"
+    },
+    "SHB": {
+        "file": "shb_2025.txt",
+        "date": "Q4/2024",
+        "desc": "Báo cáo Tài chính riêng SHB"
+    },
+    "EIB": {
+        "file": "eib_2025.txt",
+        "date": "Q4/2024",
+        "desc": "Báo cáo Tài chính hợp nhất Eximbank"
+    },
+    "SSI": {
+        "file": "ssi_2025.txt",
+        "date": "Q4/2024",
+        "desc": "Báo cáo Tài chính SSI"
+    }
+}
