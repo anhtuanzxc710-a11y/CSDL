@@ -12,7 +12,7 @@ export async function renderAIAssistant() {
         t('ai_suggest_3'),
         t('ai_suggest_4'),
         t('ai_suggest_5')
-    ]; okok
+    ];
 
     main.innerHTML = `
         <div class="ai-assistant-page" style="display:flex;">
