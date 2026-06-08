@@ -12,7 +12,7 @@ export async function renderAIAssistant() {
         t('ai_suggest_3'),
         t('ai_suggest_4'),
         t('ai_suggest_5')
-    ];
+    ]; okok
 
     main.innerHTML = `
         <div class="ai-assistant-page" style="display:flex;">
@@ -62,13 +62,13 @@ export async function renderAIAssistant() {
     try {
         const threads = await ChatService.getThreads();
         const tList = document.getElementById('thread-list');
-        
+
         if (threads.length === 0) {
             const nt = await ChatService.createThread(AppState.currentLang === 'vi' ? "Khởi đầu tư vấn" : "Initial Consulting");
             threads.push(nt);
         }
 
-        if (!AppState.activeChatThreadId || !threads.find(t=>t.id===AppState.activeChatThreadId)) {
+        if (!AppState.activeChatThreadId || !threads.find(t => t.id === AppState.activeChatThreadId)) {
             AppState.activeChatThreadId = threads[0].id;
         }
 
@@ -122,12 +122,12 @@ export async function renderAIAssistant() {
                     // Add intro
                     const intro = t('ai_intro');
                     await ChatService.addMessage(AppState.activeChatThreadId, 'assistant', intro);
-                    msgs.push({role: 'assistant', content: intro});
+                    msgs.push({ role: 'assistant', content: intro });
                 }
-                
+
                 msgsBox.innerHTML = msgs.map(m => formatMsgHTML(m.role, m.content)).join('');
                 document.getElementById('suggested-qs').style.display = msgs.length <= 1 ? 'flex' : 'none';
-                
+
                 setTimeout(() => msgsBox.scrollTop = msgsBox.scrollHeight, 100);
             } catch (e) {
                 msgsBox.innerHTML = `<div class="auth-error">${t('ai_err_msgs')}</div>`;
@@ -180,10 +180,10 @@ export async function renderAIAssistant() {
                 });
 
                 document.getElementById(typingId).remove();
-                
+
                 if (!res.ok) throw new Error("API Error");
                 let replyText = "";
-                
+
                 // Read stream
                 const reader = res.body.getReader();
                 const decoder = new TextDecoder("utf-8");
@@ -197,11 +197,11 @@ export async function renderAIAssistant() {
                 `);
 
                 const botEl = document.getElementById(botId);
-                
+
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
-                    replyText += decoder.decode(value, {stream: true});
+                    replyText += decoder.decode(value, { stream: true });
                     botEl.innerHTML = replyText.replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>').replace(/\\n/g, '<br>');
                     msgsBox.scrollTop = msgsBox.scrollHeight;
                 }
@@ -219,8 +219,8 @@ export async function renderAIAssistant() {
         };
 
         // Attach Handlers
-        const sendBtn  = document.getElementById('ai-chat-send');
-        const inputEl  = document.getElementById('ai-chat-input');
+        const sendBtn = document.getElementById('ai-chat-send');
+        const inputEl = document.getElementById('ai-chat-input');
 
         const handleSend = () => {
             const msg = inputEl.value.trim();
