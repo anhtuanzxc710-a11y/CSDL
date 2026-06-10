@@ -1,10 +1,8 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Request
+from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
-from slowapi.errors import RateLimitExceeded
-from slowapi import _rate_limit_exceeded_handler
 
 from pydantic import BaseModel
 import plotly.graph_objects as go
@@ -39,7 +37,6 @@ from core.backtester import run_backtrader_strategy
 from core.signals import compute_signals
 
 from app.core.deps import get_db, get_current_active_user
-from app.core.config import settings
 from app.models.user import User
 from app.models.refresh_token import RefreshToken
 from app.models.portfolio import Portfolio
@@ -68,37 +65,16 @@ app.include_router(ai_research.router, prefix="/api/ai", tags=["ai_research"])
 app.include_router(health.router, prefix="/api", tags=["health"])
 
 # Database (RAM) để lưu trạng thái thanh toán từ shared module
-from app.core.shared import payments_db, limiter
-
-# Register rate limiter
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+from app.core.shared import payments_db
 
 # Setup CORS for frontend to communicate without policy errors
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[str(origin).rstrip("/") for origin in settings.BACKEND_CORS_ORIGINS],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.middleware("http")
-async def add_security_headers(request: Request, call_next):
-    response = await call_next(request)
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.plot.ly; "
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-        "font-src 'self' data: https://fonts.gstatic.com; "
-        "img-src 'self' data: https://services.entrade.com.vn https://apipubaws.tcbs.com.vn; "
-        "connect-src 'self' https://services.entrade.com.vn https://apipubaws.tcbs.com.vn; "
-    )
-    return response
 
 # Serve frontend tĩnh tại /
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
@@ -319,9 +295,7 @@ class AIAdviceRequest(BaseModel):
 
 
 @app.post("/api/ai-advice")
-@limiter.limit("10/minute")
 def get_ai_advice(
-    request: Request,
     req: AIAdviceRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
