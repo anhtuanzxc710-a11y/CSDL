@@ -1,8 +1,12 @@
 import numpy as np
 import pandas as pd
-from scipy.optimize import minimize
-from sklearn.covariance import LedoitWolf
 from typing import Optional
+from app.core.quant_math import (
+    estimate_covariance,
+    adjust_variance_drag,
+    solve_max_sharpe,
+    calculate_portfolio_metrics
+)
 
 def run_monte_carlo(returns_df: pd.DataFrame, num_portfolios: int = 10000, initial_capital: float = 1000000) -> dict:
     """
@@ -16,13 +20,10 @@ def run_monte_carlo(returns_df: pd.DataFrame, num_portfolios: int = 10000, initi
     mean_returns = returns_df.mean() * 252
     
     # [Tác Vụ 2.2] Covariance Shrinkage với Ledoit-Wolf
-    cov_matrix_daily = LedoitWolf().fit(returns_df).covariance_
-    cov_matrix = pd.DataFrame(cov_matrix_daily, index=returns_df.columns, columns=returns_df.columns) * 252
+    cov_matrix = estimate_covariance(returns_df, method="ledoit_wolf")
     
     # [Tác Vụ 2.1] Điều chỉnh lực cản biến động (Variance Drag)
-    # Expected Return = mu - (sigma^2 / 2)
-    variances = np.diag(cov_matrix)
-    expected_returns = mean_returns - (variances / 2)
+    expected_returns = adjust_variance_drag(mean_returns, cov_matrix)
     
     # Sinh trọng số ngẫu nhiên
     for i in range(num_portfolios):
@@ -39,26 +40,21 @@ def run_monte_carlo(returns_df: pd.DataFrame, num_portfolios: int = 10000, initi
         weights_record[i, :] = weights
         
     # [Tác Vụ 2.1] Sử dụng scipy.optimize.minimize để tìm Max Sharpe với Ràng buộc (Bounds)
-    def negative_sharpe(weights):
-        port_return = np.sum(expected_returns * weights)
-        port_volatility = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
-        sharpe_ratio = (port_return - 0.03) / port_volatility
-        return -sharpe_ratio
-
-    # Ràng buộc: Tổng tỉ trọng = 1
-    constraints = ({'type': 'eq', 'fun': lambda x: np.sum(x) - 1})
+    ms_weights, _ = solve_max_sharpe(
+        expected_returns=expected_returns,
+        cov_matrix=cov_matrix,
+        risk_free_rate=0.03,
+        min_weight=0.05,
+        max_weight=0.50
+    )
     
-    # Ràng buộc: Tối thiểu 5%, Tối đa 50% cho mỗi mã cổ phiếu
-    bounds = tuple((0.05, 0.50) for _ in range(num_assets))
-    
-    # Khởi tạo điểm bắt đầu (equal weights)
-    init_guess = np.array(num_assets * [1. / num_assets])
-    
-    optimized_result = minimize(negative_sharpe, init_guess, method='SLSQP', bounds=bounds, constraints=constraints)
-    ms_weights = optimized_result.x
-    ms_return = np.sum(expected_returns * ms_weights)
-    ms_volatil = np.sqrt(np.dot(ms_weights.T, np.dot(cov_matrix, ms_weights)))
-    ms_sharpe = (ms_return - 0.03) / ms_volatil
+    # Tính các chỉ số danh mục tối ưu
+    ms_return, ms_volatil, ms_sharpe, _, _ = calculate_portfolio_metrics(
+        weights=ms_weights,
+        expected_returns=expected_returns,
+        cov_matrix=cov_matrix,
+        risk_free_rate=0.03
+    )
     
     # -- TÍNH KHOẢNG XÁC SUẤT 95% (CONFIDENCE INTERVAL) --
     # Khảo sát Return theo danh mục Max Sharpe với phân phối chuẩn
@@ -162,12 +158,10 @@ def evaluate_custom_portfolio(returns_df: pd.DataFrame, weights_dict: dict, init
     # Tính lợi nhuận và Biến động theo NGÀY
     daily_mean_returns = port_ret_selected.mean()
     # Sử dụng LedoitWolf Shrinkage cho Evaluator (Tác vụ 2.2)
-    daily_cov_matrix_np = LedoitWolf().fit(port_ret_selected).covariance_
-    daily_cov_matrix = pd.DataFrame(daily_cov_matrix_np, index=port_ret_selected.columns, columns=port_ret_selected.columns)
+    daily_cov_matrix = estimate_covariance(port_ret_selected, method="ledoit_wolf") / 252
     
     # [Tác Vụ 2.1] Điều chỉnh lực cản biến động (Variance Drag)
-    daily_variances = np.diag(daily_cov_matrix)
-    daily_expected_returns = daily_mean_returns - (daily_variances / 2)
+    daily_expected_returns = adjust_variance_drag(daily_mean_returns, daily_cov_matrix)
     
     port_daily_return = np.sum(daily_expected_returns * weights)
     port_daily_variance = np.dot(weights.T, np.dot(daily_cov_matrix, weights))

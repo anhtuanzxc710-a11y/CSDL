@@ -1,0 +1,1 @@
+{"timestamp": "2026-06-10T12:56:57.538209+00:00", "level": "INFO", "event": "audit_event", "action": "LOGIN_SUCCESS", "entity_type": "user", "entity_id": "4", "details": {"email": "phungkhuyen@gmail.com"}, "user_id": 4, "request_id": "8ebe7f72-d4c6-47da-8903-a6461c34128c"}
