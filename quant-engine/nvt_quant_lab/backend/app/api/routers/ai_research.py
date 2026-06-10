@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import List, Dict, Optional
@@ -8,6 +8,7 @@ from app.core.deps import get_current_active_user
 from app.models.user import User
 from app.core.research_generator import generate_grounded_research, export_research_to_docx, DISCLAIMER_TEXT
 from main import sanitize_floats
+from app.core.shared import limiter
 
 router = APIRouter()
 
@@ -24,7 +25,9 @@ class ExportDocxRequest(BaseModel):
     language: str = "vi"
 
 @router.post("/research")
+@limiter.limit("5/minute")
 def create_research(
+    request: Request,
     req: ResearchRequest,
     current_user: User = Depends(get_current_active_user)
 ):
@@ -70,7 +73,9 @@ def create_research(
     return sanitize_floats(res)
 
 @router.post("/research/export-docx")
+@limiter.limit("5/minute")
 def export_docx_report(
+    request: Request,
     req: ExportDocxRequest,
     current_user: User = Depends(get_current_active_user)
 ):
