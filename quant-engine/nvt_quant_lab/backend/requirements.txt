@@ -22,4 +22,5 @@ pyodbc
 watchfiles
 bcrypt==3.2.0
 slowapi
-sentry-sdk
+sentry-sdk
+python-docx

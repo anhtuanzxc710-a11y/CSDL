@@ -3,6 +3,12 @@ import numpy as np
 from datetime import datetime
 from scipy.optimize import minimize
 from typing import List, Dict, Any, Tuple, Optional
+from app.core.quant_math import (
+    estimate_covariance,
+    adjust_variance_drag,
+    solve_max_sharpe,
+    calculate_portfolio_metrics
+)
 
 from app.core.resilience import fetch_stock_data_resilient, fetch_index_data_resilient
 from app.core.logging_config import generate_request_id, log_exception
@@ -84,24 +90,20 @@ class OptimizerEngine:
             raise ValueError(f"Constraints are infeasible: max_weight ({self.max_weight}) * number of symbols ({n_assets}) < 1.0")
 
         # Covariance matrix estimation
-        cov_matrix = None
-        if self.covariance_method == "ledoit_wolf":
-            try:
-                from sklearn.covariance import LedoitWolf
-                cov_matrix_daily = LedoitWolf().fit(returns_df).covariance_
-                cov_matrix = pd.DataFrame(cov_matrix_daily, index=returns_df.columns, columns=returns_df.columns) * 252
-            except Exception as e:
+        try:
+            cov_matrix = estimate_covariance(returns_df, method=self.covariance_method)
+        except Exception as e:
+            if self.covariance_method == "ledoit_wolf":
                 self.warnings.append("Ledoit-Wolf covariance estimation failed. Fallback to sample covariance.")
-                cov_matrix = returns_df.cov() * 252
-        else:
-            cov_matrix = returns_df.cov() * 252
+                cov_matrix = estimate_covariance(returns_df, method="sample")
+            else:
+                raise e
 
         # Mean returns (annualized)
         mean_returns = returns_df.mean() * 252
         
         # Variance drag adjustment
-        variances = np.diag(cov_matrix)
-        expected_returns = mean_returns - (variances / 2)
+        expected_returns = adjust_variance_drag(mean_returns, cov_matrix)
 
         # Optimization bounds and constraints
         bounds = tuple((self.min_weight, self.max_weight) for _ in range(n_assets))
@@ -109,25 +111,13 @@ class OptimizerEngine:
         
         # Helper to compute portfolio metrics
         def get_portfolio_metrics(w):
-            w = np.array(w)
-            port_ret = np.sum(expected_returns * w)
-            port_var = np.dot(w.T, np.dot(cov_matrix, w))
-            port_vol = np.sqrt(port_var)
-            sharpe = (port_ret - self.risk_free_rate) / port_vol if port_vol > 0 else 0.0
-            
-            # Historical actual max drawdown
-            daily_port_returns = returns_df.dot(w)
-            cum_returns = np.exp(daily_port_returns.cumsum())
-            running_max = cum_returns.cummax()
-            drawdown = (cum_returns - running_max) / running_max
-            max_dd = float(drawdown.min())
-            
-            # Diversification ratio
-            asset_vols = np.sqrt(np.diag(cov_matrix))
-            weighted_vols = np.sum(w * asset_vols)
-            div_ratio = weighted_vols / port_vol if port_vol > 0 else 1.0
-
-            return port_ret, port_vol, sharpe, max_dd, div_ratio
+            return calculate_portfolio_metrics(
+                weights=w,
+                expected_returns=expected_returns,
+                cov_matrix=cov_matrix,
+                risk_free_rate=self.risk_free_rate,
+                returns_df=returns_df
+            )
 
         # Initial guess (equal weight)
         init_guess = np.array(n_assets * [1.0 / n_assets])
@@ -149,19 +139,16 @@ class OptimizerEngine:
                 self.warnings.append("Minimum variance optimization did not converge. Fallback to equal weight.")
                 weights = init_guess
         elif self.optimizer == "max_sharpe":
-            def objective(w):
-                port_ret = np.sum(expected_returns * w)
-                port_vol = np.sqrt(np.dot(w.T, np.dot(cov_matrix, w)))
-                if port_vol <= 0:
-                    return 0.0
-                return -((port_ret - self.risk_free_rate) / port_vol)
-            res = minimize(objective, init_guess, method='SLSQP', bounds=bounds, constraints=eq_cons)
-            if res.success:
-                weights = res.x
-            else:
+            weights, status = solve_max_sharpe(
+                expected_returns=expected_returns,
+                cov_matrix=cov_matrix,
+                risk_free_rate=self.risk_free_rate,
+                min_weight=self.min_weight,
+                max_weight=self.max_weight
+            )
+            if status == "failed":
                 opt_status = "failed"
                 self.warnings.append("Maximum Sharpe optimization did not converge. Fallback to equal weight.")
-                weights = init_guess
         elif self.optimizer == "mean_variance":
             # Maximize: Return - 2.5 * Variance
             def objective(w):
