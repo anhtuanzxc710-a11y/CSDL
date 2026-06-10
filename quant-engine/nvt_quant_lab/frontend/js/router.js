@@ -1,7 +1,7 @@
 // ─── router.js ─── Hash-based SPA Router ───
 import { Auth } from './auth.js';
 
-const PROTECTED_ROUTES = ['/dashboard', '/portfolio', '/risk-analysis', '/revenue', '/ai-assistant', '/reports', '/financials', '/optimization', '/quant', '/quant/backtest', '/quant/optimizer', '/ai-analyst'];
+const PROTECTED_ROUTES = ['/dashboard', '/portfolio', '/risk-analysis', '/revenue', '/ai-assistant', '/reports', '/financials', '/optimization', '/quant', '/quant/backtest', '/quant/optimizer', '/ai-analyst', '/ops'];
 const PUBLIC_ROUTES    = ['/', '/login', '/register'];
 
 export class Router {

@@ -104,3 +104,15 @@ def health_check(db: Session = Depends(get_db)):
     except Exception as e:
         return {"status": "error", "db": "disconnected", "error": str(e)}
 
+from app.schemas.system import AuditLog as AuditLogSchema
+
+@router.get("/audit-logs", response_model=List[AuditLogSchema])
+def get_audit_logs(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
+    """
+    Fetch recent system audit logs. Available to logged-in users.
+    """
+    return system_service.get_audit_logs(db, limit=50)
+

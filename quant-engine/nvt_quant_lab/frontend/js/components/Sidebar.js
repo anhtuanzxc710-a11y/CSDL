@@ -54,6 +54,9 @@ export function renderSidebar(router) {
         <a href="#/financials"   class="${navClass('/financials')}"   id="nav-financials">
             <span class="nav-icon">📊</span> ${t('nav_financials')}
         </a>
+        <a href="#/ops"          class="${navClass('/ops')}"          id="nav-ops">
+            <span class="nav-icon">⚙️</span> System Ops
+        </a>
         <a href="#" id="nav-logout" class="nav-link nav-logout">
             <span class="nav-icon">🚪</span> ${t('nav_logout')}
         </a>

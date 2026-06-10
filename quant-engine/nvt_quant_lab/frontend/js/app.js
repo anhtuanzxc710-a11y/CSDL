@@ -21,6 +21,7 @@ import { renderQuant } from './views/Quant.js';
 import { renderBacktest } from './views/Backtest.js';
 import { renderOptimizer } from './views/Optimizer.js';
 import { renderAIResearch } from './views/AIResearch.js';
+import { renderOpsDashboard } from './views/OpsDashboard.js';
 
 // ── Layout renderer (sidebar + topbar re-render on each route) ─────────────
 function renderLayout() {
@@ -102,6 +103,11 @@ const routes = {
         renderLayout();
         showChatWidget();
         return renderAIResearch();
+    },
+    '/ops': () => {
+        renderLayout();
+        showChatWidget();
+        return renderOpsDashboard();
     },
 };
 

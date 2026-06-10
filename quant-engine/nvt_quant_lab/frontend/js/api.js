@@ -205,3 +205,17 @@ export async function exportResearchDocx(payload) {
 
 // ── Mock helper functions removed as per MVP Database Hardening requirements ──
 
+/**
+ * GET /api/health/dependencies
+ */
+export async function getHealthDependencies() {
+    return get('/api/health/dependencies');
+}
+
+/**
+ * GET /api/system/audit-logs
+ */
+export async function getAuditLogs() {
+    return get('/api/system/audit-logs');
+}
+

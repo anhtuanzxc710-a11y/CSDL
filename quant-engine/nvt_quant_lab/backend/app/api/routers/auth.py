@@ -27,13 +27,39 @@ def login_access_token(
         db, email=form_data.username, password=form_data.password
     )
     if not user:
+        from app.services.audit_service import log_audit
+        log_audit(
+            action="LOGIN_FAILURE",
+            entity_type="user",
+            details={"email": form_data.username, "reason": "Incorrect email or password"},
+            db=db
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect email or password"
         )
     elif not user.is_active:
+        from app.services.audit_service import log_audit
+        log_audit(
+            action="LOGIN_FAILURE",
+            entity_type="user",
+            entity_id=str(user.id),
+            details={"email": form_data.username, "reason": "Inactive user"},
+            user_id=user.id,
+            db=db
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user"
         )
+    
+    from app.services.audit_service import log_audit
+    log_audit(
+        action="LOGIN_SUCCESS",
+        entity_type="user",
+        entity_id=str(user.id),
+        details={"email": form_data.username},
+        user_id=user.id,
+        db=db
+    )
     
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(
@@ -65,6 +91,15 @@ def register_user(
             detail="The user with this user email already exists in the system",
         )
     user = auth_service.create_user(db, user_in=user_in)
+    from app.services.audit_service import log_audit
+    log_audit(
+        action="REGISTER_SUCCESS",
+        entity_type="user",
+        entity_id=str(user.id),
+        details={"email": user.email},
+        user_id=user.id,
+        db=db
+    )
     return user
 
 @router.post("/refresh", response_model=Token)
@@ -174,4 +209,12 @@ def change_password(
     current_user.hashed_password = get_password_hash(pw_in.new_password)
     db.add(current_user)
     db.commit()
+    from app.services.audit_service import log_audit
+    log_audit(
+        action="PASSWORD_CHANGED",
+        entity_type="user",
+        entity_id=str(current_user.id),
+        user_id=current_user.id,
+        db=db
+    )
     return {"success": True, "message": "Password updated successfully"}

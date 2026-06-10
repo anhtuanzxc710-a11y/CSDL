@@ -28,6 +28,15 @@ class Settings(BaseSettings):
     # AI SETTINGS
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
     
+    # SENTRY SETTINGS
+    SENTRY_DSN: str = os.getenv("SENTRY_DSN", "")
+    SENTRY_ENVIRONMENT: str = os.getenv("SENTRY_ENVIRONMENT", "production")
+    SENTRY_TRACES_SAMPLE_RATE: float = float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1"))
+    
+    # ALERT SETTINGS
+    ALERT_WEBHOOK_URL: str = os.getenv("ALERT_WEBHOOK_URL", "")
+    ALERT_ENABLED: bool = os.getenv("ALERT_ENABLED", "false").lower() == "true"
+    
     # Optimization SETTINGS
     vnstock_source: str = "TCBS"
     trading_days_per_year: int = 252

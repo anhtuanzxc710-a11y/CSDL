@@ -24,7 +24,17 @@ def create_portfolio(
     portfolio_in: PortfolioCreate,
     current_user: User = Depends(get_current_active_user),
 ):
-    return portfolio_service.create_portfolio(db, portfolio_in, current_user.id)
+    res = portfolio_service.create_portfolio(db, portfolio_in, current_user.id)
+    from app.services.audit_service import log_audit
+    log_audit(
+        action="PORTFOLIO_CREATED",
+        entity_type="portfolio",
+        entity_id=str(res.id),
+        details={"name": res.name},
+        user_id=current_user.id,
+        db=db
+    )
+    return res
 
 @router.get("/{portfolio_id}", response_model=PortfolioSchema)
 def read_portfolio(
@@ -47,6 +57,14 @@ def set_default_portfolio(
     if not portfolio:
         raise HTTPException(status_code=404, detail="Portfolio not found")
     portfolio_service.set_default_portfolio(db, portfolio_id, current_user.id)
+    from app.services.audit_service import log_audit
+    log_audit(
+        action="PORTFOLIO_DEFAULT_CHANGED",
+        entity_type="portfolio",
+        entity_id=str(portfolio_id),
+        user_id=current_user.id,
+        db=db
+    )
     return {"success": True}
 
 @router.get("/{portfolio_id}/holdings", response_model=HoldingsResponse)
@@ -79,6 +97,15 @@ def add_transaction(
     tx = portfolio_service.add_transaction(db, portfolio_id, current_user.id, tx_in)
     if not tx:
         raise HTTPException(status_code=404, detail="Portfolio not found")
+    from app.services.audit_service import log_audit
+    log_audit(
+        action="TRANSACTION_ADDED",
+        entity_type="transaction",
+        entity_id=str(tx.id),
+        details={"ticker": tx.ticker, "quantity": tx.quantity, "price": tx.price, "type": tx.transaction_type.name if hasattr(tx.transaction_type, "name") else str(tx.transaction_type)},
+        user_id=current_user.id,
+        db=db
+    )
     return tx
 
 @router.delete("/{portfolio_id}/transactions/{transaction_id}")
@@ -91,6 +118,15 @@ def delete_transaction(
     success = portfolio_service.delete_transaction(db, transaction_id, portfolio_id, current_user.id)
     if not success:
         raise HTTPException(status_code=404, detail="Transaction not found")
+    from app.services.audit_service import log_audit
+    log_audit(
+        action="TRANSACTION_DELETED",
+        entity_type="transaction",
+        entity_id=str(transaction_id),
+        details={"portfolio_id": portfolio_id},
+        user_id=current_user.id,
+        db=db
+    )
     return {"success": True}
 
 @router.put("/{portfolio_id}/transactions/{transaction_id}", response_model=Transaction)
@@ -104,4 +140,13 @@ def update_transaction(
     tx = portfolio_service.update_transaction(db, transaction_id, portfolio_id, current_user.id, tx_in)
     if not tx:
         raise HTTPException(status_code=404, detail="Transaction not found")
+    from app.services.audit_service import log_audit
+    log_audit(
+        action="TRANSACTION_UPDATED",
+        entity_type="transaction",
+        entity_id=str(tx.id),
+        details={"ticker": tx.ticker, "quantity": tx.quantity, "price": tx.price, "type": tx.transaction_type.name if hasattr(tx.transaction_type, "name") else str(tx.transaction_type)},
+        user_id=current_user.id,
+        db=db
+    )
     return tx

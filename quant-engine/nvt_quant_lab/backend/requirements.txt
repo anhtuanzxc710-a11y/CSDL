@@ -21,4 +21,5 @@ python-multipart
 pyodbc
 watchfiles
 bcrypt==3.2.0
-slowapi
+slowapi
+sentry-sdk

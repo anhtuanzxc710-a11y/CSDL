@@ -46,7 +46,22 @@ from app.models.chat import ChatThread, ChatMessage
 from app.models.system import Report, AuditLog
 from app.models.stocks import Stock
 from app.services import chat_service
+from app.core.config import settings
+from app.core.observability_middleware import ObservabilityMiddleware
 
+# Initialize Sentry if configured
+if settings.SENTRY_DSN:
+    try:
+        import sentry_sdk
+        from sentry_sdk.integrations.fastapi import FastApiIntegration
+        sentry_sdk.init(
+            dsn=settings.SENTRY_DSN,
+            environment=settings.SENTRY_ENVIRONMENT,
+            traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
+            integrations=[FastApiIntegration()]
+        )
+    except ImportError:
+        pass  # sentry-sdk not installed or failed to import
 
 app = FastAPI(title="NVT Quant Lab API")
 
@@ -75,6 +90,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Request ID & Observability logs middleware
+app.add_middleware(ObservabilityMiddleware)
 
 # Serve frontend tĩnh tại /
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
