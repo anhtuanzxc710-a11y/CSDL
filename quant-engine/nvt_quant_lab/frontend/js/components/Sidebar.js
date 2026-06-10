@@ -33,6 +33,12 @@ export function renderSidebar(router) {
         <a href="#/optimization" class="${navClass('/optimization')}" id="nav-optimization">
             <span class="nav-icon">⚖️</span> ${t('nav_opt_adv')}
         </a>
+        <a href="#/quant"        class="${navClass('/quant')}"        id="nav-quant">
+            <span class="nav-icon">📈</span> ${t('nav_quant')}
+        </a>
+        <a href="#/quant/backtest" class="${navClass('/quant/backtest')}" id="nav-backtest">
+            <span class="nav-icon">⏱️</span> ${t('nav_backtest')}
+        </a>
         <a href="#/ai-assistant" class="${navClass('/ai-assistant')}" id="nav-ai">
             <span class="nav-icon">🤖</span> ${t('nav_ai')}
         </a>

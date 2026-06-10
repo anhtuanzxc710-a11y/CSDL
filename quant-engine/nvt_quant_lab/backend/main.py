@@ -50,7 +50,7 @@ from app.services import chat_service
 
 app = FastAPI(title="NVT Quant Lab API")
 
-from app.api.routers import auth, portfolios, performance, chat, system, optimization, payment
+from app.api.routers import auth, portfolios, performance, chat, system, optimization, payment, quant, health, backtest
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(portfolios.router, prefix="/api/portfolios", tags=["portfolios"])
 app.include_router(performance.router, prefix="/api/portfolios", tags=["performance"])
@@ -58,6 +58,9 @@ app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 app.include_router(system.router, prefix="/api/system", tags=["system"])
 app.include_router(optimization.router, prefix="/api/optimization", tags=["optimization"])
 app.include_router(payment.router, prefix="/api/payment", tags=["payment"])
+app.include_router(quant.router, prefix="/api/quant", tags=["quant"])
+app.include_router(backtest.router, prefix="/api/quant", tags=["backtest"])
+app.include_router(health.router, prefix="/api", tags=["health"])
 
 # Database (RAM) để lưu trạng thái thanh toán từ shared module
 from app.core.shared import payments_db
