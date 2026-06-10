@@ -102,7 +102,7 @@ def add_transaction(
         action="TRANSACTION_ADDED",
         entity_type="transaction",
         entity_id=str(tx.id),
-        details={"ticker": tx.ticker, "quantity": tx.quantity, "price": tx.price, "type": tx.transaction_type.name if hasattr(tx.transaction_type, "name") else str(tx.transaction_type)},
+        details={"ticker": tx.ticker, "quantity": tx.quantity, "price": tx.price, "type": tx.side},
         user_id=current_user.id,
         db=db
     )
@@ -145,8 +145,29 @@ def update_transaction(
         action="TRANSACTION_UPDATED",
         entity_type="transaction",
         entity_id=str(tx.id),
-        details={"ticker": tx.ticker, "quantity": tx.quantity, "price": tx.price, "type": tx.transaction_type.name if hasattr(tx.transaction_type, "name") else str(tx.transaction_type)},
+        details={"ticker": tx.ticker, "quantity": tx.quantity, "price": tx.price, "type": tx.side},
         user_id=current_user.id,
-        db=db
     )
     return tx
+
+
+from pydantic import BaseModel
+
+class HoldingUpdate(BaseModel):
+    quantity: float
+    avg_cost: float
+
+@router.put("/{portfolio_id}/holdings/{ticker}")
+def update_ticker_holding(
+    portfolio_id: int,
+    ticker: str,
+    holding_in: HoldingUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    success = portfolio_service.update_ticker_holding(
+        db, portfolio_id, current_user.id, ticker, holding_in.quantity, holding_in.avg_cost
+    )
+    if not success:
+        raise HTTPException(status_code=404, detail="Portfolio or ticker not found")
+    return {"success": True}

@@ -36,5 +36,12 @@ export const PortfolioService = {
 
     async updateTransaction(portfolioId, txId, payload) {
         return http.put(`/api/portfolios/${portfolioId}/transactions/${txId}`, payload);
+    },
+
+    async updateHolding(portfolioId, ticker, quantity, avgCost) {
+        return http.put(`/api/portfolios/${portfolioId}/holdings/${ticker}`, {
+            quantity: parseFloat(quantity),
+            avg_cost: parseFloat(avgCost)
+        });
     }
 };

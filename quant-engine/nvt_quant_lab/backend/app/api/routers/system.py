@@ -45,7 +45,7 @@ def generate_report_task(db: Session, user_id: int, format: str):
                 txs = get_transactions(db, p.id, user_id)
                 for tx in txs:
                     trade_dt = tx.trade_date.strftime("%Y-%m-%d %H:%M:%S") if tx.trade_date else ""
-                    writer.writerow([p.name, tx.ticker, tx.transaction_type.name, str(tx.quantity), str(tx.price), trade_dt])
+                    writer.writerow([p.name, tx.ticker, tx.side, str(tx.quantity), str(tx.price), trade_dt])
     else:
         # Fallback empty standard
         with open(file_path, mode='w') as f:

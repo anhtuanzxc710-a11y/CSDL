@@ -183,6 +183,56 @@ def update_transaction(db: Session, transaction_id: int, portfolio_id: int, user
     return tx
 
 
+def update_ticker_holding(db: Session, portfolio_id: int, user_id: int, ticker: str, quantity: float, avg_cost: float) -> bool:
+    # verify portfolio ownership
+    if not get_portfolio(db, portfolio_id, user_id):
+        return False
+    
+    ticker_str = ticker.upper()
+    
+    # Delete all existing transactions for this ticker in this portfolio
+    db.query(Transaction).filter(
+        Transaction.portfolio_id == portfolio_id,
+        Transaction.ticker == ticker_str
+    ).delete(synchronize_session=False)
+    
+    # If quantity > 0, create a new BUY transaction
+    if quantity > 0:
+        stock = db.query(Stock).filter(Stock.ticker == ticker_str).first()
+        if not stock:
+            try:
+                new_stock = Stock(ticker=ticker_str, company_name=ticker_str)
+                db.add(new_stock)
+                db.commit()
+            except Exception as e:
+                db.rollback()
+                raise HTTPException(status_code=500, detail=f"Failed to auto-register ticker {ticker_str}: {str(e)}")
+        
+        db_obj = Transaction(
+            portfolio_id=portfolio_id,
+            ticker=ticker_str,
+            side="BUY",
+            quantity=quantity,
+            price=avg_cost,
+            fee=0.0,
+            tax=0.0,
+            trade_date=datetime.utcnow().date(),
+            note="Cập nhật trực tiếp số dư holdings"
+        )
+        db.add(db_obj)
+        
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error during holding update: {str(e)}")
+        
+    add_audit_log(db, action="HOLDING_UPDATED", entity_type="portfolio", entity_id=str(portfolio_id), user_id=user_id)
+    capture_portfolio_snapshot(db, portfolio_id, user_id)
+    
+    return True
+
+
 # --- HOLDINGS COMPUTATION ---
 
 def get_portfolio_holdings(db: Session, portfolio_id: int, user_id: int) -> Optional[HoldingsResponse]:

@@ -3,6 +3,7 @@ import { PortfolioService } from '../services/portfolioService.js';
 import { t } from '../i18n.js';
 
 let editingTxId = null;
+let editingHoldingTicker = null;
 
 export async function renderPortfolio() {
     const main = document.getElementById('main-content');
@@ -130,6 +131,14 @@ export async function renderPortfolio() {
                         <label>Ngày GD</label>
                         <input type="date" id="tx-date" class="form-input"/>
                     </div>
+                    <div class="form-group" style="margin-bottom:0; flex:1; min-width:120px;">
+                        <label>Phí GD (VNĐ)</label>
+                        <input type="number" id="tx-fee" class="form-input" placeholder="0" min="0" step="any"/>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0; flex:1; min-width:120px;">
+                        <label>Thuế GD (VNĐ)</label>
+                        <input type="number" id="tx-tax" class="form-input" placeholder="0" min="0" step="any"/>
+                    </div>
                     <div class="form-group" style="margin-bottom:0; flex:1.5; min-width:180px;">
                         <label>Ghi chú</label>
                         <input type="text" id="tx-note" class="form-input" placeholder="Ghi chú giao dịch..."/>
@@ -161,6 +170,7 @@ export async function renderPortfolio() {
                                 <th class="text-right">${t('ptf_col_mval')}</th>
                                 <th class="text-right">${t('dash_col_pnl')}</th>
                                 <th class="text-right">${t('dash_col_weight')}</th>
+                                <th style="text-align: center; width: 120px;">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody id="portfolio-tbody">
@@ -184,6 +194,7 @@ export async function renderPortfolio() {
                                 <th class="text-right">${t('ptf_tx_qty')}</th>
                                 <th class="text-right">${t('ptf_tx_price')}</th>
                                 <th class="text-right">Tổng giá trị</th>
+                                <th class="text-right">Phí / Thuế</th>
                                 <th>Ngày giao dịch</th>
                                 <th>Ghi chú</th>
                                 <th style="text-align: center; width: 150px;">Thao tác</th>
@@ -213,6 +224,8 @@ export async function renderPortfolio() {
                 if (txToEdit.trade_date) {
                     document.getElementById('tx-date').value = txToEdit.trade_date.split('T')[0];
                 }
+                document.getElementById('tx-fee').value = txToEdit.fee !== undefined ? txToEdit.fee : 0;
+                document.getElementById('tx-tax').value = txToEdit.tax !== undefined ? txToEdit.tax : 0;
                 document.getElementById('tx-note').value = txToEdit.note || '';
             }
         }
@@ -232,15 +245,17 @@ export async function renderPortfolio() {
         });
 
         // Toggle form
-        document.getElementById('btn-add-tx').addEventListener('click', () => {
+        document.getElementById('btn-add-tx').addEventListener('click', async () => {
             editingTxId = null;
-            renderPortfolio();
-            document.getElementById('tx-form-container').style.display = 'block';
+            await renderPortfolio();
+            const container = document.getElementById('tx-form-container');
+            if (container) {
+                container.style.display = 'block';
+            }
         });
-        document.getElementById('btn-cancel-tx').addEventListener('click', () => {
+        document.getElementById('btn-cancel-tx').addEventListener('click', async () => {
             editingTxId = null;
-            document.getElementById('tx-form-container').style.display = 'none';
-            renderPortfolio();
+            await renderPortfolio();
         });
 
         // Submit form
@@ -258,7 +273,8 @@ export async function renderPortfolio() {
                 ticker: document.getElementById('tx-ticker').value.trim().toUpperCase(),
                 quantity: parseFloat(document.getElementById('tx-qty').value),
                 price: parseFloat(document.getElementById('tx-price').value),
-                fee: 0,
+                fee: parseFloat(document.getElementById('tx-fee').value) || 0,
+                tax: parseFloat(document.getElementById('tx-tax').value) || 0,
                 trade_date: dateVal ? new Date(dateVal).toISOString() : null,
                 note: document.getElementById('tx-note').value.trim() || null
             };
@@ -282,11 +298,14 @@ export async function renderPortfolio() {
 
         // Bind Edit buttons
         document.querySelectorAll('.btn-edit-tx').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('click', async (e) => {
                 const txId = parseInt(e.currentTarget.getAttribute('data-id'));
                 editingTxId = txId;
-                renderPortfolio();
-                document.getElementById('tx-form-container').scrollIntoView({ behavior: 'smooth' });
+                await renderPortfolio();
+                const container = document.getElementById('tx-form-container');
+                if (container) {
+                    container.scrollIntoView({ behavior: 'smooth' });
+                }
             });
         });
 
@@ -304,6 +323,49 @@ export async function renderPortfolio() {
                     } catch (err) {
                         alert(err.message || "Không thể xóa giao dịch");
                     }
+                }
+            });
+        });
+
+        // Bind Edit Holding buttons
+        document.querySelectorAll('.btn-edit-holding').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                editingHoldingTicker = e.currentTarget.getAttribute('data-ticker');
+                renderPortfolio();
+            });
+        });
+
+        // Bind Cancel Holding buttons
+        document.querySelectorAll('.btn-cancel-holding').forEach(btn => {
+            btn.addEventListener('click', () => {
+                editingHoldingTicker = null;
+                renderPortfolio();
+            });
+        });
+
+        // Bind Save Holding buttons
+        document.querySelectorAll('.btn-save-holding').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const ticker = e.currentTarget.getAttribute('data-ticker');
+                const qtyVal = parseFloat(document.getElementById('edit-holding-qty').value);
+                const costVal = parseFloat(document.getElementById('edit-holding-cost').value);
+                
+                if (isNaN(qtyVal) || qtyVal < 0 || isNaN(costVal) || costVal < 0) {
+                    alert("Khối lượng và Giá vốn phải là số lớn hơn hoặc bằng 0");
+                    return;
+                }
+                
+                e.currentTarget.disabled = true;
+                e.currentTarget.textContent = "⌛...";
+                
+                try {
+                    await PortfolioService.updateHolding(activePtf.id, ticker, qtyVal, costVal);
+                    editingHoldingTicker = null;
+                    renderPortfolio();
+                } catch (err) {
+                    alert(err.message || "Không thể cập nhật holdings");
+                    e.currentTarget.disabled = false;
+                    e.currentTarget.textContent = "💾 Lưu";
                 }
             });
         });
@@ -398,35 +460,55 @@ export async function renderPortfolio() {
 
 function renderRows(rows) {
     if (rows.length === 0) {
-        return `<tr><td colspan="7" style="text-align:center; padding: 2rem;">${t('ptf_empty')}</td></tr>`
+        return `<tr><td colspan="8" style="text-align:center; padding: 2rem;">${t('ptf_empty')}</td></tr>`
     }
 
-    return rows.map(h => `
-        <tr>
-            <td><span class="ticker-badge">${h.ticker}</span></td>
-            <td class="text-right">${h.quantity.toLocaleString('vi-VN')}</td>
-            <td class="text-right">${fmtVND(h.avg_cost)}</td>
-            <td class="text-right">${fmtVND(h.market_price)}</td>
-            <td class="text-right">${fmtVND(h.market_value)}</td>
-            <td class="text-right">
-                <span style="color:${h.pnl>=0?'var(--neon-green)':'var(--neon-alert)'}; font-weight:600;">
-                    ${h.pnl>=0?'+':''}${fmtVND(h.pnl)}<br>
-                    <small>(${h.pnlPct>=0?'+':''}${h.pnlPct.toFixed(2)}%)</small>
-                </span>
-            </td>
-            <td class="text-right">
-                <div class="weight-bar-wrap">
-                    <div class="weight-bar" style="width:${Math.min(h.weight * 100,100).toFixed(0)}%"></div>
-                    <span>${(h.weight * 100).toFixed(1)}%</span>
-                </div>
-            </td>
-        </tr>
-    `).join('');
+    return rows.map(h => {
+        const isEditing = editingHoldingTicker === h.ticker;
+        
+        const qtyCell = isEditing 
+            ? `<input type="number" id="edit-holding-qty" class="form-input text-right" value="${h.quantity}" style="width: 80px; display: inline-block; padding: 2px 6px; font-size: 0.85rem;" min="0" step="any"/>`
+            : h.quantity.toLocaleString('vi-VN');
+            
+        const costCell = isEditing
+            ? `<input type="number" id="edit-holding-cost" class="form-input text-right" value="${h.avg_cost}" style="width: 120px; display: inline-block; padding: 2px 6px; font-size: 0.85rem;" min="0" step="any"/>`
+            : fmtVND(h.avg_cost);
+            
+        const actionCell = isEditing
+            ? `<button class="btn-primary btn-sm btn-save-holding" data-ticker="${h.ticker}" style="padding: 2px 8px; font-size: 0.75rem; background: var(--neon-green); color: var(--bg); margin-right: 4px;">💾 Lưu</button>
+               <button class="btn-ghost btn-sm btn-cancel-holding" style="padding: 2px 8px; font-size: 0.75rem;">❌ Hủy</button>`
+            : `<button class="btn-ghost btn-sm btn-edit-holding" data-ticker="${h.ticker}" style="padding: 2px 8px; font-size: 0.75rem;">✏️ Sửa</button>`;
+
+        return `
+            <tr style="${isEditing ? 'background: rgba(0, 184, 255, 0.08);' : ''}">
+                <td><span class="ticker-badge">${h.ticker}</span></td>
+                <td class="text-right">${qtyCell}</td>
+                <td class="text-right">${costCell}</td>
+                <td class="text-right">${fmtVND(h.market_price)}</td>
+                <td class="text-right">${fmtVND(h.market_value)}</td>
+                <td class="text-right">
+                    <span style="color:${h.pnl>=0?'var(--neon-green)':'var(--neon-alert)'}; font-weight:600;">
+                        ${h.pnl>=0?'+':''}${fmtVND(h.pnl)}<br>
+                        <small>(${h.pnlPct>=0?'+':''}${h.pnlPct.toFixed(2)}%)</small>
+                    </span>
+                </td>
+                <td class="text-right">
+                    <div class="weight-bar-wrap">
+                        <div class="weight-bar" style="width:${Math.min(h.weight * 100,100).toFixed(0)}%"></div>
+                        <span>${(h.weight * 100).toFixed(1)}%</span>
+                    </div>
+                </td>
+                <td style="text-align: center;">
+                    ${actionCell}
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function renderTxRows(transactions) {
     if (!transactions || transactions.length === 0) {
-        return `<tr><td colspan="8" style="text-align:center; padding: 2rem; color:var(--text-muted);">${t('ptf_empty')}</td></tr>`;
+        return `<tr><td colspan="9" style="text-align:center; padding: 2rem; color:var(--text-muted);">${t('ptf_empty')}</td></tr>`;
     }
     return transactions.map(tx => {
         const sideBadge = tx.side === 'BUY' 
@@ -434,6 +516,8 @@ function renderTxRows(transactions) {
             : `<span class="signal-badge badge-sell">${t('ptf_tx_sell')}</span>`;
             
         const totalVal = tx.quantity * tx.price;
+        const feeStr = tx.fee ? fmtVND(tx.fee) : '0₫';
+        const taxStr = tx.tax ? fmtVND(tx.tax) : '0₫';
         const dateStr = tx.trade_date ? tx.trade_date.split('T')[0] : '';
         const noteStr = tx.note || '-';
         
@@ -444,6 +528,7 @@ function renderTxRows(transactions) {
                 <td class="text-right">${tx.quantity.toLocaleString('vi-VN')}</td>
                 <td class="text-right">${fmtVND(tx.price)}</td>
                 <td class="text-right" style="font-weight:600; color:var(--text-main);">${fmtVND(totalVal)}</td>
+                <td class="text-right" style="font-size:0.85rem; color:var(--text-muted);">${feeStr} / ${taxStr}</td>
                 <td>${dateStr}</td>
                 <td style="color:var(--text-muted); font-size:0.85rem; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${noteStr}">${noteStr}</td>
                 <td style="text-align: center;">
