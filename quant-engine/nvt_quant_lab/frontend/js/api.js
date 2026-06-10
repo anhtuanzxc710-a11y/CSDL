@@ -89,7 +89,10 @@ export async function fetchAIAdviceStream(data) {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${newToken}`
                 },
-                body: JSON.stringify({ monte_carlo, stress_test, advanced_metrics, news_data, lang })
+                body: JSON.stringify({
+                    ...data,
+                    lang: lang
+                })
             });
         } else {
             Auth.logout(false);

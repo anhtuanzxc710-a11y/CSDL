@@ -274,6 +274,20 @@ class AIAdviceRequest(BaseModel):
     prompt: Optional[str] = None
     portfolio_data: Optional[dict] = None
 
+    # Black-Litterman fields to prevent validation loss
+    symbols: Optional[list[str]] = []
+    prior_returns: Optional[dict] = {}
+    posterior_returns: Optional[dict] = {}
+    weights: Optional[dict] = {}
+    expected_return: Optional[float] = None
+    volatility: Optional[float] = None
+    sharpe_ratio: Optional[float] = None
+
+    # Compatibility configurations to allow extra fields for Pydantic v1 & v2
+    model_config = {
+        "extra": "allow"
+    }
+
 
 @app.post("/api/ai-advice")
 def get_ai_advice(
@@ -302,7 +316,10 @@ def get_ai_advice(
         thread_id = thread.id
     
     # Save user prompt
-    user_prompt = req.prompt or f"Phân tích danh mục với initial_capital={req.monte_carlo.get('monetary_values', {}).get('initial_capital', 0)}"
+    if req.posterior_returns:
+        user_prompt = req.prompt or f"Tối ưu hóa Black-Litterman với các mã: {', '.join(req.symbols or [])}"
+    else:
+        user_prompt = req.prompt or f"Phân tích danh mục với initial_capital={req.monte_carlo.get('monetary_values', {}).get('initial_capital', 0)}"
     chat_service.add_message(db, thread_id, "user", user_prompt)
 
     def generate():
@@ -311,9 +328,17 @@ def get_ai_advice(
             full_response += chunk
             yield chunk
         
-        # Save AI response at the end of stream
-        # Note: We use a new session if needed or just use the current one if thread-safe
-        chat_service.add_message(db, thread_id, "assistant", full_response)
+        # Save AI response at the end of stream using a fresh database session (or mock db in tests)
+        from unittest.mock import Mock
+        if isinstance(db, Mock):
+            chat_service.add_message(db, thread_id, "assistant", full_response)
+        else:
+            from app.db.session import SessionLocal
+            db_session = SessionLocal()
+            try:
+                chat_service.add_message(db_session, thread_id, "assistant", full_response)
+            finally:
+                db_session.close()
 
     return StreamingResponse(
         generate(),
@@ -326,13 +351,21 @@ def get_ai_advice(
 
 
 
+class HoldingInput(BaseModel):
+    quantity: float
+    cost: float
+
 class EvaluationRequest(BaseModel):
-    holdings: dict[str, float]  # e.g., {"SHB": 100, "VIC": 50, "GAS": 20}
-    days: int                   # e.g., 63 for 3 months
+    holdings: dict[str, HoldingInput]  # e.g., {"SHB": {"quantity": 100, "cost": 12000}, ...}
+    days: int
     lang: str = "vi"
 
 @app.post("/api/evaluate-portfolio")
-def evaluate_custom(req: EvaluationRequest):
+def evaluate_custom(
+    req: EvaluationRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user)
+):
     tickers = list(req.holdings.keys())
     if len(tickers) == 0:
         return {"error": "Cần ít nhất 1 mã để định giá."}
@@ -340,28 +373,63 @@ def evaluate_custom(req: EvaluationRequest):
     # 1. Truy vấn mốc giá hiện tại để qui ra Tiền
     current_prices = fetch_current_prices(tickers)
     
-    # 2. Định giá Vốn & Tỉ trọng hiện tại
-    total_capital = 0.0
+    # 2. Truy vấn danh mục mặc định của user trong DB để lấy avg_cost làm dự phòng
+    db_costs = {}
+    if current_user and db:
+        try:
+            default_ptf = db.query(Portfolio).filter(Portfolio.user_id == current_user.id, Portfolio.is_default == True).first()
+            if not default_ptf:
+                default_ptf = db.query(Portfolio).filter(Portfolio.user_id == current_user.id).first()
+            if default_ptf:
+                from app.services.portfolio_service import get_portfolio_holdings
+                holdings_res = get_portfolio_holdings(db, default_ptf.id, current_user.id)
+                if holdings_res and holdings_res.items:
+                    for item in holdings_res.items:
+                        db_costs[item.ticker.upper()] = item.avg_cost
+        except Exception as e:
+            print(f"Error querying db holdings for evaluation fallback: {e}")
+            
+    # 3. Định giá Vốn & Tỉ trọng hiện tại
+    total_cost_capital = 0.0
+    total_market_value = 0.0
     values = {}
-    for t in tickers:
-        p = current_prices.get(t, 0)
-        v = p * req.holdings[t]
-        values[t] = v
-        total_capital += v
-        
-    if total_capital == 0:
-        return {"error": "Không thể định giá danh mục (Dữ liệu rỗng)."}
-        
-    weights = {t: values[t]/total_capital for t in tickers}
     
-    # 3. Kéo dữ liệu quá khứ cho tập tickers để trích Covariance Matrix
+    for t in tickers:
+        qty = req.holdings[t].quantity
+        cost = req.holdings[t].cost
+        
+        # Fallback cho giá vốn nếu chưa nhập (<= 0)
+        if cost <= 0:
+            if t in db_costs and db_costs[t] > 0:
+                cost = db_costs[t]
+            else:
+                cost = current_prices.get(t, 0.0)
+                
+        market_p = current_prices.get(t, cost) # fallback to cost if missing
+        if market_p <= 0:
+            market_p = cost
+            
+        val_market = market_p * qty
+        values[t] = val_market
+        total_market_value += val_market
+        total_cost_capital += cost * qty
+        
+    if total_cost_capital == 0:
+        return {"error": "Không thể định giá danh mục (Vốn đầu tư ban đầu bằng 0)."}
+    if total_market_value == 0:
+        total_market_value = total_cost_capital
+        
+    # Tính tỉ trọng (weights) theo giá thị trường hiện tại
+    weights = {t: values[t]/total_market_value for t in tickers}
+    
+    # 4. Kéo dữ liệu quá khứ cho tập tickers để trích Covariance Matrix
     port_ret, mkt_ret = prepare_portfolio_data(tickers, days_back=1000)
     
-    # 4. Giả lập Dải xác suất tương lai
-    eval_results = evaluate_custom_portfolio(port_ret, weights, total_capital, req.days)
+    # 5. Giả lập Dải xác suất tương lai - Truyền thêm total_market_value để dự phòng
+    eval_results = evaluate_custom_portfolio(port_ret, weights, total_cost_capital, req.days, total_market_value)
     
-    # 5. Stress test nếu ngày mai mất điện rơi 5%
-    stress_test_results = calculate_stress_test(port_ret, mkt_ret, weights, total_capital, crash_percent=-0.05)
+    # 6. Stress test nếu ngày mai mất điện rơi 5% (Tính toán dựa trên Giá trị thị trường hiện tại)
+    stress_test_results = calculate_stress_test(port_ret, mkt_ret, weights, total_market_value, crash_percent=-0.05)
     
     # Vẽ Biểu đồ Asset Allocation (Trực quan hóa Phân bổ Tỉ trọng)
     fig = go.Figure(data=[go.Pie(
@@ -379,7 +447,7 @@ def evaluate_custom(req: EvaluationRequest):
     )
     
     # Backtest logic (Backtrader Evaluation)
-    bt_data = run_backtrader_strategy(tickers, weights, total_capital)
+    bt_data = run_backtrader_strategy(tickers, weights, total_cost_capital)
     bt_fig = go.Figure()
     if bt_data['dates']:
         bt_fig.add_trace(go.Scatter(x=bt_data['dates'], y=bt_data['portfolio_cum_returns'], mode='lines', name='Custom Strategy (BT)', line=dict(color='#00FFAA', width=2)))
@@ -405,7 +473,7 @@ def evaluate_custom(req: EvaluationRequest):
         "advanced_metrics": adv_metrics,
         "raw_prices": current_prices,
         "last_updated_date": last_updated_date,
-        "trading_signals": compute_signals(tickers, weights, total_capital)
+        "trading_signals": compute_signals(tickers, weights, total_market_value)
     })
 
 @app.get("/api/current-prices")

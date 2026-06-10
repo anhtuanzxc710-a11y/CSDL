@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.core.deps import get_db, get_current_active_user
 from app.models.user import User
 from app.schemas.portfolio import PortfolioCreate, PortfolioUpdate, Portfolio as PortfolioSchema, HoldingsResponse
-from app.schemas.transaction import Transaction, TransactionCreate
+from app.schemas.transaction import Transaction, TransactionCreate, TransactionUpdate
 from app.services import portfolio_service
 
 router = APIRouter()
@@ -92,3 +92,16 @@ def delete_transaction(
     if not success:
         raise HTTPException(status_code=404, detail="Transaction not found")
     return {"success": True}
+
+@router.put("/{portfolio_id}/transactions/{transaction_id}", response_model=Transaction)
+def update_transaction(
+    portfolio_id: int,
+    transaction_id: int,
+    tx_in: TransactionUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    tx = portfolio_service.update_transaction(db, transaction_id, portfolio_id, current_user.id, tx_in)
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    return tx

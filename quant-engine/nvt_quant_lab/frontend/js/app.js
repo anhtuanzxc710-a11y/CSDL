@@ -29,55 +29,55 @@ function renderLayout() {
 const routes = {
     '/': () => {
         renderLayout();
-        renderLanding();
+        return renderLanding();
     },
     '/login': () => {
         renderLayout();
-        renderLogin(router);
+        return renderLogin(router);
     },
     '/register': () => {
         renderLayout();
-        renderRegister(router);
+        return renderRegister(router);
     },
     '/dashboard': () => {
         renderLayout();
-        renderDashboard();
         showChatWidget();
+        return renderDashboard();
     },
     '/portfolio': () => {
         renderLayout();
-        renderPortfolio();
         showChatWidget();
+        return renderPortfolio();
     },
     '/risk-analysis': () => {
         renderLayout();
-        renderRiskAnalysis();
         showChatWidget();
+        return renderRiskAnalysis();
     },
     '/revenue': () => {
         renderLayout();
-        renderRevenue();
         showChatWidget();
+        return renderRevenue();
     },
     '/ai-assistant': () => {
         renderLayout();
-        renderAIAssistant();
         showChatWidget();
+        return renderAIAssistant();
     },
     '/reports': () => {
         renderLayout();
-        renderReports();
         showChatWidget();
+        return renderReports();
     },
     '/financials': () => {
         renderLayout();
-        renderFinancials();
         showChatWidget();
+        return renderFinancials();
     },
     '/optimization': () => {
         renderLayout();
-        renderOptimization();
         showChatWidget();
+        return renderOptimization();
     },
 };
 

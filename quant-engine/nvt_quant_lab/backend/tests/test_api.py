@@ -1,16 +1,34 @@
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from main import app
+from app.core.deps import get_current_active_user, get_db
+from app.models.user import User
 
 client = TestClient(app)
+
+@pytest.fixture(autouse=True)
+def setup_dependency_overrides():
+    # Setup mock user and db overrides
+    mock_user = User(id=1, is_active=True)
+    mock_db = MagicMock()
+    app.dependency_overrides[get_current_active_user] = lambda: mock_user
+    app.dependency_overrides[get_db] = lambda: mock_db
+    yield
+    app.dependency_overrides.pop(get_current_active_user, None)
+    app.dependency_overrides.pop(get_db, None)
 
 @patch('main.prepare_portfolio_data')
 @patch('main.run_monte_carlo')
 @patch('main.calculate_stress_test')
 def test_run_simulation_api(mock_stress, mock_mc, mock_data):
-    # Mock data return
-    mock_data.return_value = (None, None)
+    import pandas as pd
+    # Mock data return with DataFrame and Series
+    mock_df = pd.DataFrame(index=pd.date_range('2026-01-01', periods=5))
+    mock_df['TCB'] = [0.01] * 5
+    mock_df['VNM'] = [0.01] * 5
+    mock_mkt = pd.Series([0.005] * 5, index=mock_df.index, name='VNINDEX')
+    mock_data.return_value = (mock_df, mock_mkt)
     
     # Mock MC return
     mock_mc.return_value = {
@@ -40,13 +58,17 @@ def test_run_simulation_api(mock_stress, mock_mc, mock_data):
 @patch('main.evaluate_custom_portfolio')
 @patch('main.calculate_stress_test')
 def test_evaluate_portfolio_api(mock_stress, mock_eval, mock_data, mock_prices):
+    import pandas as pd
     mock_prices.return_value = {"AAA": 10000}
-    mock_data.return_value = (None, None)
+    mock_df = pd.DataFrame(index=pd.date_range('2026-01-01', periods=5))
+    mock_df['AAA'] = [0.01] * 5
+    mock_mkt = pd.Series([0.005] * 5, index=mock_df.index, name='VNINDEX')
+    mock_data.return_value = (mock_df, mock_mkt)
     mock_eval.return_value = {"expected_return": 0.05}
     mock_stress.return_value = {"portfolio_beta": 1.1}
 
     response = client.post("/api/evaluate-portfolio", json={
-        "holdings": {"AAA": 100},
+        "holdings": {"AAA": {"quantity": 100, "cost": 10000}},
         "days": 63
     })
 
@@ -59,7 +81,7 @@ def test_evaluate_portfolio_api(mock_stress, mock_eval, mock_data, mock_prices):
 @patch('main.stream_ai_advice')
 def test_ai_advice_api(mock_stream):
     # Mock generator
-    def mock_gen(data):
+    def mock_gen(data, lang):
         yield "Hello "
         yield "World"
     

@@ -2,6 +2,8 @@ import { AppState } from '../state.js';
 import { PortfolioService } from '../services/portfolioService.js';
 import { t } from '../i18n.js';
 
+let editingTxId = null;
+
 export async function renderPortfolio() {
     const main = document.getElementById('main-content');
     if (!main) return;
@@ -35,6 +37,13 @@ export async function renderPortfolio() {
         const holdingsRes = await PortfolioService.getHoldings(activePtf.id);
         const holdingsMap = holdingsRes.map || {};
         const enriched = holdingsRes.items || [];
+        
+        let transactions = [];
+        try {
+            transactions = await PortfolioService.getTransactions(activePtf.id);
+        } catch (txErr) {
+            console.error("Lỗi tải lịch sử giao dịch:", txErr);
+        }
         
         // Update state so risk analysis can use it
         AppState.portfolioHoldings = enriched.map(item => ({
@@ -98,8 +107,8 @@ export async function renderPortfolio() {
             </div>
 
             <!-- Add Tx Form (Hidden Config) -->
-            <div id="tx-form-container" class="glass-card" style="display:none; padding:1.5rem; margin-bottom: 1rem;">
-                <h3 style="margin-top:0;">${t('ptf_tx_title')}</h3>
+            <div id="tx-form-container" class="glass-card" style="display:${editingTxId ? 'block' : 'none'}; padding:1.5rem; margin-bottom: 1rem; border-color:${editingTxId ? 'var(--neon-purple)' : 'var(--border)'};">
+                <h3 style="margin-top:0;">${editingTxId ? t('ptf_tx_edit_title') : t('ptf_tx_title')}</h3>
                 <form id="add-tx-form" style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap;">
                     <div class="form-group" style="margin-bottom:0; flex:1; min-width:120px;">
                         <label>${t('ptf_tx_type')}</label>
@@ -117,7 +126,17 @@ export async function renderPortfolio() {
                         <label>${t('ptf_tx_price')} (VNĐ)</label>
                         <input type="number" id="tx-price" class="form-input" placeholder="105000" required min="1"/>
                     </div>
-                    <button type="submit" class="btn-primary" id="btn-submit-tx">${t('ptf_tx_save')}</button>
+                    <div class="form-group" style="margin-bottom:0; flex:1; min-width:150px;">
+                        <label>Ngày GD</label>
+                        <input type="date" id="tx-date" class="form-input"/>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0; flex:1.5; min-width:180px;">
+                        <label>Ghi chú</label>
+                        <input type="text" id="tx-note" class="form-input" placeholder="Ghi chú giao dịch..."/>
+                    </div>
+                    <button type="submit" class="btn-primary" id="btn-submit-tx" style="${editingTxId ? 'background:var(--neon-purple); color:var(--bg);' : ''}">
+                        ${editingTxId ? t('ptf_tx_update_btn') : t('ptf_tx_save')}
+                    </button>
                     <button type="button" class="btn-primary" id="btn-cancel-tx" style="background:transparent; border:1px solid var(--border);">${t('btn_cancel')}</button>
                     <div id="tx-error" class="auth-error" style="display:none; width:100%; margin-top:0.5rem;"></div>
                 </form>
@@ -151,12 +170,52 @@ export async function renderPortfolio() {
                 </div>
             </div>
 
+            <!-- Transaction History Card -->
+            <div class="glass-card" style="padding:1.5rem; margin-top:1.5rem;">
+                <div class="card-header" style="margin-bottom: 1rem;">
+                    <h3>${t('ptf_tx_history')}</h3>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>${t('ptf_tx_type')}</th>
+                                <th>${t('dash_col_ticker')}</th>
+                                <th class="text-right">${t('ptf_tx_qty')}</th>
+                                <th class="text-right">${t('ptf_tx_price')}</th>
+                                <th class="text-right">Tổng giá trị</th>
+                                <th>Ngày giao dịch</th>
+                                <th>Ghi chú</th>
+                                <th style="text-align: center; width: 150px;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${renderTxRows(transactions)}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Note -->
             <div class="info-note">
                 ℹ️ ${t('ptf_search_ph') === '🔍 Search ticker...' ? 'Holdings are calculated from transactions (add new with "+ Add Transaction"). Prices are estimated from real-time data.' : 'Dữ liệu holdings được tính toán từ các giao dịch (thêm mới bằng nút \'+ Thêm giao dịch\'). Giá thị trường được tổng hợp từ dữ liệu thời gian thực.'}
             </div>
         `;
 
+        // Pre-fill form if editing
+        if (editingTxId) {
+            const txToEdit = transactions.find(t => t.id === editingTxId);
+            if (txToEdit) {
+                document.getElementById('tx-type').value = txToEdit.side;
+                document.getElementById('tx-ticker').value = txToEdit.ticker;
+                document.getElementById('tx-qty').value = txToEdit.quantity;
+                document.getElementById('tx-price').value = txToEdit.price;
+                if (txToEdit.trade_date) {
+                    document.getElementById('tx-date').value = txToEdit.trade_date.split('T')[0];
+                }
+                document.getElementById('tx-note').value = txToEdit.note || '';
+            }
+        }
 
         // Search logic
         document.getElementById('ptf-search').addEventListener('input', (e) => {
@@ -174,10 +233,14 @@ export async function renderPortfolio() {
 
         // Toggle form
         document.getElementById('btn-add-tx').addEventListener('click', () => {
+            editingTxId = null;
+            renderPortfolio();
             document.getElementById('tx-form-container').style.display = 'block';
         });
         document.getElementById('btn-cancel-tx').addEventListener('click', () => {
+            editingTxId = null;
             document.getElementById('tx-form-container').style.display = 'none';
+            renderPortfolio();
         });
 
         // Submit form
@@ -186,27 +249,63 @@ export async function renderPortfolio() {
             const btn = document.getElementById('btn-submit-tx');
             const errDiv = document.getElementById('tx-error');
             btn.disabled = true;
-            btn.textContent = 'Đang lưu...';
+            btn.textContent = editingTxId ? t('ptf_tx_update_btn') + '...' : t('ptf_tx_save') + '...';
             errDiv.style.display = 'none';
 
+            const dateVal = document.getElementById('tx-date').value;
             const payload = {
                 side: document.getElementById('tx-type').value,
                 ticker: document.getElementById('tx-ticker').value.trim().toUpperCase(),
                 quantity: parseFloat(document.getElementById('tx-qty').value),
                 price: parseFloat(document.getElementById('tx-price').value),
-                fee: 0
+                fee: 0,
+                trade_date: dateVal ? new Date(dateVal).toISOString() : null,
+                note: document.getElementById('tx-note').value.trim() || null
             };
 
             try {
-                await PortfolioService.addTransaction(activePtf.id, payload);
+                if (editingTxId) {
+                    await PortfolioService.updateTransaction(activePtf.id, editingTxId, payload);
+                    editingTxId = null;
+                } else {
+                    await PortfolioService.addTransaction(activePtf.id, payload);
+                }
                 // Refresh list
                 renderPortfolio();
             } catch (err) {
-                errDiv.textContent = err.message || "Không thể lưu giao dịch";
+                errDiv.textContent = err.message || (editingTxId ? "Không thể cập nhật giao dịch" : "Không thể lưu giao dịch");
                 errDiv.style.display = 'block';
                 btn.disabled = false;
-                btn.textContent = 'Lưu lại';
+                btn.textContent = editingTxId ? t('ptf_tx_update_btn') : t('ptf_tx_save');
             }
+        });
+
+        // Bind Edit buttons
+        document.querySelectorAll('.btn-edit-tx').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const txId = parseInt(e.currentTarget.getAttribute('data-id'));
+                editingTxId = txId;
+                renderPortfolio();
+                document.getElementById('tx-form-container').scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // Bind Delete buttons
+        document.querySelectorAll('.btn-delete-tx').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const txId = parseInt(e.currentTarget.getAttribute('data-id'));
+                if (confirm(t('ptf_confirm_delete'))) {
+                    try {
+                        await PortfolioService.deleteTransaction(activePtf.id, txId);
+                        if (editingTxId === txId) {
+                            editingTxId = null;
+                        }
+                        renderPortfolio();
+                    } catch (err) {
+                        alert(err.message || "Không thể xóa giao dịch");
+                    }
+                }
+            });
         });
 
         // Create new portfolio
@@ -217,6 +316,79 @@ export async function renderPortfolio() {
                 renderPortfolio();
             }
         });
+
+        // Periodic auto-update for market values every 20 minutes
+        async function updateMarketValues() {
+            try {
+                if (AppState.selectedPortfolioId !== activePtf.id) return;
+                
+                const holdingsRes = await PortfolioService.getHoldings(activePtf.id);
+                const enriched = holdingsRes.items || [];
+                
+                AppState.portfolioHoldings = enriched.map(item => ({
+                    ticker: item.ticker,
+                    qty: item.quantity,
+                    avgCost: item.avg_cost
+                }));
+
+                let totalInvested = 0, currentValue = 0, totalPnl = 0;
+                enriched.forEach(h => {
+                    const invested = h.quantity * h.avg_cost;
+                    totalInvested += invested;
+                    currentValue += h.market_value;
+                    h.pnl = h.market_value - invested;
+                    h.pnlPct = invested ? (h.pnl / invested) * 100 : 0;
+                });
+
+                totalPnl = currentValue - totalInvested;
+                const totalPnlPct = totalInvested ? (totalPnl / totalInvested) * 100 : 0;
+                const pnlColor = totalPnl >= 0 ? 'var(--neon-green)' : 'var(--neon-alert)';
+
+                const summaryStrip = document.querySelector('.portfolio-summary-strip');
+                if (summaryStrip) {
+                    summaryStrip.innerHTML = `
+                        <div class="ptf-stat">
+                            <span class="ptf-stat-label">${t('ptf_stat_capital')}</span>
+                            <span class="ptf-stat-val" style="color:#00B8FF">${fmtVND(totalInvested)}</span>
+                        </div>
+                        <div class="ptf-stat-divider"></div>
+                        <div class="ptf-stat">
+                            <span class="ptf-stat-label">${t('ptf_stat_value')}</span>
+                            <span class="ptf-stat-val" style="color:var(--neon-green)">${fmtVND(currentValue)}</span>
+                        </div>
+                        <div class="ptf-stat-divider"></div>
+                        <div class="ptf-stat">
+                            <span class="ptf-stat-label">${t('ptf_stat_pnl')}</span>
+                            <span class="ptf-stat-val" style="color:${pnlColor}">${totalPnl>=0?'+':''}${fmtVND(totalPnl)} (${totalPnlPct.toFixed(1)}%)</span>
+                        </div>
+                        <div class="ptf-stat-divider"></div>
+                        <div class="ptf-stat">
+                            <span class="ptf-stat-label">${t('ptf_stat_count')}</span>
+                            <span class="ptf-stat-val" style="color:#F59E0B">${enriched.length}</span>
+                        </div>
+                    `;
+                }
+
+                const tbody = document.getElementById('portfolio-tbody');
+                if (tbody) {
+                    const searchInput = document.getElementById('ptf-search');
+                    const q = searchInput ? searchInput.value.toUpperCase() : '';
+                    tbody.innerHTML = renderRows(enriched.filter(h => h.ticker.includes(q)));
+                }
+                console.log("[Auto-Refresh] Đã tự động cập nhật giá thị trường thành công:", new Date().toLocaleTimeString());
+            } catch (err) {
+                console.error("[Auto-Refresh] Lỗi khi tự động cập nhật giá thị trường:", err);
+            }
+        }
+
+        const refreshInterval = setInterval(updateMarketValues, 20 * 60 * 1000);
+
+        return {
+            cleanup: () => {
+                clearInterval(refreshInterval);
+                console.log("Đã dọn dẹp bộ tự động cập nhật giá thị trường (Portfolio Interval).");
+            }
+        };
 
     } catch (e) {
         console.error("Lỗi tải portfolio:", e);
@@ -250,6 +422,37 @@ function renderRows(rows) {
             </td>
         </tr>
     `).join('');
+}
+
+function renderTxRows(transactions) {
+    if (!transactions || transactions.length === 0) {
+        return `<tr><td colspan="8" style="text-align:center; padding: 2rem; color:var(--text-muted);">${t('ptf_empty')}</td></tr>`;
+    }
+    return transactions.map(tx => {
+        const sideBadge = tx.side === 'BUY' 
+            ? `<span class="signal-badge badge-buy">${t('ptf_tx_buy')}</span>` 
+            : `<span class="signal-badge badge-sell">${t('ptf_tx_sell')}</span>`;
+            
+        const totalVal = tx.quantity * tx.price;
+        const dateStr = tx.trade_date ? tx.trade_date.split('T')[0] : '';
+        const noteStr = tx.note || '-';
+        
+        return `
+            <tr>
+                <td>${sideBadge}</td>
+                <td><span class="ticker-badge">${tx.ticker}</span></td>
+                <td class="text-right">${tx.quantity.toLocaleString('vi-VN')}</td>
+                <td class="text-right">${fmtVND(tx.price)}</td>
+                <td class="text-right" style="font-weight:600; color:var(--text-main);">${fmtVND(totalVal)}</td>
+                <td>${dateStr}</td>
+                <td style="color:var(--text-muted); font-size:0.85rem; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${noteStr}">${noteStr}</td>
+                <td style="text-align: center;">
+                    <button class="btn-ghost btn-sm btn-edit-tx" data-id="${tx.id}" style="padding: 2px 8px; font-size: 0.75rem; margin-right: 4px;">✏️ ${t('ptf_tx_edit')}</button>
+                    <button class="btn-alert btn-sm btn-delete-tx" data-id="${tx.id}" style="padding: 2px 8px; font-size: 0.75rem; background: rgba(255, 95, 86, 0.12); border-color: rgba(255, 95, 86, 0.3); color: var(--neon-alert);">🗑️ ${t('ptf_tx_delete')}</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function fmtVND(v) {

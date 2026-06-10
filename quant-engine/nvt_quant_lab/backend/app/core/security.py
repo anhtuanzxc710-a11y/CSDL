@@ -1,3 +1,14 @@
+import bcrypt
+# Fix passlib compatibility with bcrypt >= 4.0.0
+_original_hashpw = bcrypt.hashpw
+def _patched_hashpw(password, salt):
+    if isinstance(password, str):
+        password = password.encode('utf-8')
+    if len(password) > 72:
+        password = password[:72]
+    return _original_hashpw(password, salt)
+bcrypt.hashpw = _patched_hashpw
+
 from datetime import datetime, timedelta
 from typing import Any, Union, Optional
 from jose import jwt

@@ -124,14 +124,40 @@ def prepare_portfolio_data(tickers: list, days_back: int = 1000):
 
 def fetch_current_prices(tickers: list) -> dict:
     """
-    Truy vấn nhanh Giá Đóng cửa mới nhất của danh sách mã Cổ phiếu.
-    Nhân với 1000 để chuyển đổi hệ số của API Entrade về đơn vị VND thực tế (VD: 74.0 -> 74000).
+    Truy vấn Giá hiện tại thời gian thực (real-time, cập nhật theo từng phút) của danh sách mã cổ phiếu.
+    Nếu không lấy được giá realtime (ngoài giờ giao dịch hoặc lỗi mạng), tự động fallback về giá đóng cửa phiên gần nhất.
     """
+    import requests_cache
     prices = {}
+    now = datetime.datetime.now()
+    to_ts = int(now.timestamp())
+    from_ts = int((now - datetime.timedelta(days=4)).timestamp()) # 4 ngày để đảm bảo có nến kể cả qua cuối tuần
+    
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    
     for t in tickers:
-        df = fetch_stock_data(t, days_back=10) # 10 ngày để bù đắp nghỉ Lễ
-        if not df.empty:
-            prices[t] = float(df['close'].iloc[-1]) * 1000
+        t_str = t.upper()
+        # 1. Thử lấy giá real-time (resolution = 1 phút, không dùng cache)
+        try:
+            url_live = f"https://services.entrade.com.vn/chart-api/v2/ohlcs/stock?symbol={t_str}&resolution=1&from={from_ts}&to={to_ts}"
+            with requests_cache.disabled():
+                res = requests.get(url_live, headers=headers, timeout=5)
+                res.raise_for_status()
+                data = res.json()
+                if 'c' in data and data['c']:
+                    prices[t_str] = float(data['c'][-1]) * 1000
+                    continue
+        except Exception as e:
+            print(f"Live Price Fetch Error for {t_str}: {e}")
+            
+        # 2. Fallback về EOD (giá đóng cửa cuối ngày)
+        try:
+            df = fetch_stock_data(t_str, days_back=10)
+            if not df.empty:
+                prices[t_str] = float(df['close'].iloc[-1]) * 1000
+        except Exception as e:
+            print(f"Fallback Price Fetch Error for {t_str}: {e}")
+            
     return prices
 
 
