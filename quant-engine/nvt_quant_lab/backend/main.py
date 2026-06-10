@@ -37,6 +37,7 @@ from core.backtester import run_backtrader_strategy
 from core.signals import compute_signals
 
 from app.core.deps import get_db, get_current_active_user
+from app.core.config import settings
 from app.models.user import User
 from app.models.refresh_token import RefreshToken
 from app.models.portfolio import Portfolio
@@ -50,7 +51,7 @@ from app.services import chat_service
 
 app = FastAPI(title="NVT Quant Lab API")
 
-from app.api.routers import auth, portfolios, performance, chat, system, optimization, payment, quant, health, backtest
+from app.api.routers import auth, portfolios, performance, chat, system, optimization, payment, quant, health, backtest, optimize, ai_research
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(portfolios.router, prefix="/api/portfolios", tags=["portfolios"])
 app.include_router(performance.router, prefix="/api/portfolios", tags=["performance"])
@@ -60,6 +61,8 @@ app.include_router(optimization.router, prefix="/api/optimization", tags=["optim
 app.include_router(payment.router, prefix="/api/payment", tags=["payment"])
 app.include_router(quant.router, prefix="/api/quant", tags=["quant"])
 app.include_router(backtest.router, prefix="/api/quant", tags=["backtest"])
+app.include_router(optimize.router, prefix="/api/quant", tags=["optimize"])
+app.include_router(ai_research.router, prefix="/api/ai", tags=["ai_research"])
 app.include_router(health.router, prefix="/api", tags=["health"])
 
 # Database (RAM) để lưu trạng thái thanh toán từ shared module
@@ -68,7 +71,7 @@ from app.core.shared import payments_db
 # Setup CORS for frontend to communicate without policy errors
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[str(origin).rstrip("/") for origin in settings.BACKEND_CORS_ORIGINS],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -39,8 +39,14 @@ export function renderSidebar(router) {
         <a href="#/quant/backtest" class="${navClass('/quant/backtest')}" id="nav-backtest">
             <span class="nav-icon">⏱️</span> ${t('nav_backtest')}
         </a>
+        <a href="#/quant/optimizer" class="${navClass('/quant/optimizer')}" id="nav-optimizer-advanced">
+            <span class="nav-icon">⚖️</span> ${t('nav_optimizer_advanced')}
+        </a>
         <a href="#/ai-assistant" class="${navClass('/ai-assistant')}" id="nav-ai">
             <span class="nav-icon">🤖</span> ${t('nav_ai')}
+        </a>
+        <a href="#/ai-analyst" class="${navClass('/ai-analyst')}" id="nav-ai-analyst">
+            <span class="nav-icon">✦</span> ${t('nav_ai_analyst')}
         </a>
         <a href="#/reports"      class="${navClass('/reports')}"      id="nav-reports">
             <span class="nav-icon">📄</span> ${t('nav_reports')}

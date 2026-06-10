@@ -486,6 +486,7 @@ async function runBacktestTask() {
         }
 
         lastBacktestData = data;
+        AppState.lastBacktestResult = data;
 
         // Show degraded mode warning if applicable
         if (data._meta && data.warnings && data.warnings.length > 0) {

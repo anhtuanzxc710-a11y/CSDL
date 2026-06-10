@@ -19,6 +19,8 @@ import { renderFinancials } from './views/Financials.js';
 import { renderOptimization } from './views/Optimization.js';
 import { renderQuant } from './views/Quant.js';
 import { renderBacktest } from './views/Backtest.js';
+import { renderOptimizer } from './views/Optimizer.js';
+import { renderAIResearch } from './views/AIResearch.js';
 
 // ── Layout renderer (sidebar + topbar re-render on each route) ─────────────
 function renderLayout() {
@@ -90,6 +92,16 @@ const routes = {
         renderLayout();
         showChatWidget();
         return renderBacktest();
+    },
+    '/quant/optimizer': () => {
+        renderLayout();
+        showChatWidget();
+        return renderOptimizer();
+    },
+    '/ai-analyst': () => {
+        renderLayout();
+        showChatWidget();
+        return renderAIResearch();
     },
 };
 

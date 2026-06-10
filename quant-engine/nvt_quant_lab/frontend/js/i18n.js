@@ -256,7 +256,9 @@ const I18N = {
         'opt_metric_exp': 'Exp. Return',
         'opt_metric_vol': 'Volatility',
         'opt_metric_sharpe': 'Sharpe Ratio',
-        'nav_backtest': 'Backtest Engine'
+        'nav_backtest': 'Backtest Engine',
+        'nav_optimizer_advanced': 'Quant Optimizer',
+        'nav_ai_analyst': 'AI Research Analyst'
     },
     'vi': {
         'nav_dashboard': 'Dashboard',
@@ -509,7 +511,9 @@ const I18N = {
         'opt_metric_exp': 'LN kỳ vọng',
         'opt_metric_vol': 'Độ biến động',
         'opt_metric_sharpe': 'Sharpe Ratio',
-        'nav_backtest': 'Kiểm thử Lịch sử'
+        'nav_backtest': 'Kiểm thử Lịch sử',
+        'nav_optimizer_advanced': 'Tối ưu hóa Quant',
+        'nav_ai_analyst': 'Phân tích AI'
     }
 };
 

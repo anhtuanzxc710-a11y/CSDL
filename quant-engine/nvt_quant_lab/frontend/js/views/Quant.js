@@ -309,6 +309,7 @@ async function runQuantAnalysisTask() {
         }
 
         lastAnalysisData = data;
+        AppState.lastQuantResult = data;
 
         // Phase 2: Show degraded mode banner if applicable
         if (data._meta && data._meta.is_degraded) {

@@ -161,4 +161,47 @@ export async function runBacktest(payload) {
     return post('/api/quant/backtest', payload);
 }
 
+/**
+ * POST /api/quant/optimize
+ * Portfolio Optimization
+ */
+export async function runOptimize(payload) {
+    return post('/api/quant/optimize', payload);
+}
+
+/**
+ * POST /api/quant/optimize-and-backtest
+ * Portfolio Optimization and Backtesting combined
+ */
+export async function runOptimizeAndBacktest(payload) {
+    return post('/api/quant/optimize-and-backtest', payload);
+}
+
+/**
+ * POST /api/ai/research
+ * Generate AI Investment Research Report
+ */
+export async function runAIResearch(payload) {
+    return post('/api/ai/research', payload);
+}
+
+/**
+ * POST /api/ai/research/export-docx
+ * Export AI research report to Word DOCX
+ */
+export async function exportResearchDocx(payload) {
+    const token = Auth.getAccessToken();
+    const res = await fetch(API_BASE + '/api/ai/research/export-docx', {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(`DOCX Export Error ${res.status}`);
+    return res.blob();
+}
+
 // ── Mock helper functions removed as per MVP Database Hardening requirements ──
+

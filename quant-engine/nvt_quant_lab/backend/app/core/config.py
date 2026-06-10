@@ -4,6 +4,15 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "NVT Quant Lab Backend"
+    BACKEND_CORS_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "http://localhost:8080",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:8000",
+        "http://127.0.0.1:8080",
+        "https://dntquantlab.pro.vn",
+    ]
     
     # DATABASE
     # Using SQL Server as primary, fallback to SQLite for local dev if not set
