@@ -7,5 +7,3 @@ vn30_quant_app/env/
 .env
 **/.env
 **/venv/
-*.db
-**/scratch/
