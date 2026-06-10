@@ -145,4 +145,20 @@ export async function optimizeBlackLitterman(payload) {
     return post('/api/optimization/optimize', payload);
 }
 
+/**
+ * POST /api/quant/analyze
+ * Quant App Core Analysis
+ */
+export async function analyzeQuant(payload) {
+    return post('/api/quant/analyze', payload);
+}
+
+/**
+ * POST /api/quant/backtest
+ * Portfolio Backtest Engine
+ */
+export async function runBacktest(payload) {
+    return post('/api/quant/backtest', payload);
+}
+
 // ── Mock helper functions removed as per MVP Database Hardening requirements ──

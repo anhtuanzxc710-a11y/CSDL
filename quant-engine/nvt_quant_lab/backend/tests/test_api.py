@@ -94,3 +94,90 @@ def test_ai_advice_api(mock_stream):
     
     assert response.status_code == 200
     assert response.text == "Hello World"
+
+@patch('app.api.routers.quant.prepare_portfolio_data_resilient')
+@patch('app.api.routers.quant.calculate_advanced_metrics')
+def test_quant_analyze_api(mock_metrics, mock_data):
+    import pandas as pd
+    mock_df = pd.DataFrame(index=pd.date_range('2026-01-01', periods=10))
+    mock_df['TCB'] = [0.01] * 10
+    mock_df['VNM'] = [0.01] * 10
+    mock_mkt = pd.Series([0.005] * 10, index=mock_df.index, name='VNINDEX')
+    mock_data.return_value = (mock_df, mock_mkt, "VN30", False)
+    
+    mock_metrics.return_value = {
+        "annualized_return": 0.12,
+        "annualized_volatility": 0.08,
+        "sortino": 1.2,
+        "treynor": 0.1,
+        "r_squared": 0.8,
+        "max_drawdown": -0.05,
+        "calmar": 2.4,
+        "var_95_daily": -0.01,
+        "beta": 1.1
+    }
+    
+    response = client.post("/api/quant/analyze", json={
+        "tickers": ["TCB", "VNM"],
+        "start_date": "2026-01-01",
+        "end_date": "2026-01-10",
+        "capital": 1000000,
+        "risk_free_rate": 0.03
+    })
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert "metrics" in data
+    assert "correlation_matrix" in data
+    assert "charts" in data
+    assert abs(data["metrics"]["sharpe_ratio"] - 1.125) < 1e-5
+
+def test_quant_analyze_api_empty_tickers():
+    response = client.post("/api/quant/analyze", json={
+        "tickers": [],
+        "start_date": "2026-01-01",
+        "end_date": "2026-01-10",
+        "capital": 1000000,
+        "risk_free_rate": 0.03
+    })
+    assert response.status_code == 400
+    assert "Danh sách mã cổ phiếu không được rỗng" in response.json()["detail"]
+
+def test_quant_analyze_api_invalid_capital():
+    response = client.post("/api/quant/analyze", json={
+        "tickers": ["TCB"],
+        "start_date": "2026-01-01",
+        "end_date": "2026-01-10",
+        "capital": 0,
+        "risk_free_rate": 0.03
+    })
+    assert response.status_code == 400
+    assert "Vốn đầu tư ban đầu phải lớn hơn 0" in response.json()["detail"]
+
+def test_quant_analyze_api_invalid_dates():
+    response = client.post("/api/quant/analyze", json={
+        "tickers": ["TCB"],
+        "start_date": "2026-01-10",
+        "end_date": "2026-01-01",
+        "capital": 1000000,
+        "risk_free_rate": 0.03
+    })
+    assert response.status_code == 400
+    assert "Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc" in response.json()["detail"]
+
+@patch('app.api.routers.quant.prepare_portfolio_data_resilient')
+def test_quant_analyze_api_no_data(mock_data):
+    import pandas as pd
+    # Return empty dataframes
+    mock_data.return_value = (pd.DataFrame(), pd.Series(dtype=float), "NONE", True)
+    
+    response = client.post("/api/quant/analyze", json={
+        "tickers": ["TCB"],
+        "start_date": "2026-01-01",
+        "end_date": "2026-01-10",
+        "capital": 1000000,
+        "risk_free_rate": 0.03
+    })
+    assert response.status_code == 400
+    assert "Không lấy được dữ liệu cho các mã cổ phiếu" in response.json()["detail"]
+
