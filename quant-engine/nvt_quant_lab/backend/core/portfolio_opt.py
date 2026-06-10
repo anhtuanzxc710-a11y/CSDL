@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
 from sklearn.covariance import LedoitWolf
+from typing import Optional
 
 def run_monte_carlo(returns_df: pd.DataFrame, num_portfolios: int = 10000, initial_capital: float = 1000000) -> dict:
     """
@@ -145,12 +146,15 @@ def calculate_stress_test(port_returns: pd.DataFrame, market_returns: pd.Series,
         'capital_after_crash': final_capital
     }
 
-def evaluate_custom_portfolio(returns_df: pd.DataFrame, weights_dict: dict, initial_capital: float, trading_days: int = 63) -> dict:
+def evaluate_custom_portfolio(returns_df: pd.DataFrame, weights_dict: dict, initial_capital: float, trading_days: int = 63, total_market_value: Optional[float] = None) -> dict:
     """
     Tính năng Đánh Giá Danh Mục Cá Nhân (Evaluator).
     Tính dải mức lợi nhuận và Rủi ro cho một mốc thời gian cố định ở tương lai.
     (Ví dụ 3 tháng = ~63 ngày giao dịch).
     """
+    if total_market_value is None:
+        total_market_value = initial_capital
+
     tickers = list(weights_dict.keys())
     port_ret_selected = returns_df[tickers]
     weights = np.array([weights_dict[t] for t in tickers])
@@ -178,15 +182,19 @@ def evaluate_custom_portfolio(returns_df: pd.DataFrame, weights_dict: dict, init
     upper_bound_return = period_return + (1.96 * period_volatility)
     var_95_percent = period_return - (1.645 * period_volatility)
     
-    # Tính mốc Suy ra Số Tiền VNĐ
-    expected_val = initial_capital * (1 + period_return)
-    lower_bound_val = initial_capital * (1 + lower_bound_return)
-    upper_bound_val = initial_capital * (1 + upper_bound_return)
-    # [BẢN SỬA LỖI] VaR: Thể hiện số tiền rủi ro có thể mất (Relative Loss)
-    # Lấy phân vị thứ 5 của phân phối. Nếu kết quả dương (vẫn có lời ở 5%), VaR = 0 (Không mất vốn).
-    var_95_worst_value = initial_capital * (1 + var_95_percent)
-    var_95_value = min(0, var_95_worst_value - initial_capital)
+    # Tính mốc Suy ra Số Tiền VNĐ - Dự phòng dựa trên GIÁ TRỊ THỊ TRƯỜNG HIỆN TẠI (total_market_value)
+    expected_val = total_market_value * (1 + period_return)
+    lower_bound_val = total_market_value * (1 + lower_bound_return)
+    upper_bound_val = total_market_value * (1 + upper_bound_return)
+    # [BẢN SỬA LỖI] VaR: Thể hiện số tiền rủi ro có thể mất (Relative Loss) tính từ giá trị thị trường
+    var_95_worst_value = total_market_value * (1 + var_95_percent)
+    var_95_value = min(0, var_95_worst_value - total_market_value)
     
+    # Tính toán Sharpe Ratio thường niên (Giả định risk-free rate 3% tương tự như Monte Carlo)
+    ann_return = port_daily_return * 252
+    ann_volatility = np.sqrt(port_daily_variance * 252)
+    custom_sharpe = (ann_return - 0.03) / ann_volatility if ann_volatility > 0 else 0.0
+
     return {
         'timeframe_days': trading_days,
         'expected_return': period_return,
@@ -194,8 +202,14 @@ def evaluate_custom_portfolio(returns_df: pd.DataFrame, weights_dict: dict, init
         'ci_95_lower': lower_bound_return,
         'ci_95_upper': upper_bound_return,
         'var_95_percent': var_95_percent,
+        'max_sharpe': {
+            'sharpe': custom_sharpe,
+            'expected_return': ann_return,
+            'volatility': ann_volatility,
+            'weights': weights_dict
+        },
         'monetary_values': {
-            'initial_capital': initial_capital,
+            'initial_capital': initial_capital, # Đây là giá vốn ban đầu
             'expected_value': expected_val,
             'ci_lower_value': lower_bound_val,
             'ci_upper_value': upper_bound_val,

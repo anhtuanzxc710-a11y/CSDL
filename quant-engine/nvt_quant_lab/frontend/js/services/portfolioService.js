@@ -32,5 +32,9 @@ export const PortfolioService = {
 
     async deleteTransaction(portfolioId, txId) {
         return http.delete(`/api/portfolios/${portfolioId}/transactions/${txId}`);
+    },
+
+    async updateTransaction(portfolioId, txId, payload) {
+        return http.put(`/api/portfolios/${portfolioId}/transactions/${txId}`, payload);
     }
 };

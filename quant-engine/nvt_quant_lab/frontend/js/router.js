@@ -46,15 +46,27 @@ export class Router {
 
         // Clean up previous view
         if (typeof this._currentCleanup === 'function') {
-            this._currentCleanup();
+            try {
+                this._currentCleanup();
+            } catch (err) {
+                console.error("Error running cleanup function:", err);
+            }
             this._currentCleanup = null;
         }
 
         const handler = this.routes[path] || this.routes['/'];
         if (handler) {
             const result = handler();
-            if (result && typeof result.cleanup === 'function') {
-                this._currentCleanup = result.cleanup;
+            if (result) {
+                if (result instanceof Promise) {
+                    result.then(res => {
+                        if (res && typeof res.cleanup === 'function') {
+                            this._currentCleanup = res.cleanup;
+                        }
+                    }).catch(err => console.error("Error resolving view handler:", err));
+                } else if (typeof result.cleanup === 'function') {
+                    this._currentCleanup = result.cleanup;
+                }
             }
         }
     }

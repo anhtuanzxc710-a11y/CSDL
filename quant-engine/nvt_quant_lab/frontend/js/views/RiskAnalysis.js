@@ -5,11 +5,52 @@ import { t } from '../i18n.js';
 function fmtVND(v) { return Math.floor(v ?? 0).toLocaleString('vi-VN') + '₫'; }
 function fmtPct(v, decimals = 2) { return v != null ? (v * 100).toFixed(decimals) + '%' : '--'; }
 
-export function renderRiskAnalysis() {
+export async function renderRiskAnalysis() {
     const main = document.getElementById('main-content');
     if (!main) return;
 
+    // Load holdings if empty in AppState
+    if (!AppState.portfolioHoldings || AppState.portfolioHoldings.length === 0) {
+        main.innerHTML = `
+            <div class="page-content">
+                <div class="page-header">
+                    <h1 class="page-title">🔬 ${t('nav_risk')}</h1>
+                    <div class="page-subtitle">${t('risk_subtitle')}</div>
+                </div>
+                <div class="glass-card" style="padding:2rem; text-align:center; color:var(--text-muted);">
+                    <div class="loading-spinner" style="margin: 0 auto 1rem;"></div>
+                    <p>${t('ptf_loading')}</p>
+                </div>
+            </div>
+        `;
+        
+        try {
+            const { PortfolioService } = await import('../services/portfolioService.js');
+            let portfolios = await PortfolioService.getPortfolios();
+            if (portfolios && portfolios.length > 0) {
+                const activePtf = portfolios.find(p => p.is_default) || portfolios[0];
+                const holdingsRes = await PortfolioService.getHoldings(activePtf.id);
+                const enriched = holdingsRes.items || [];
+                AppState.portfolioHoldings = enriched.map(item => ({
+                    ticker: item.ticker,
+                    qty: item.quantity,
+                    avgCost: item.avg_cost
+                }));
+            }
+        } catch (e) {
+            console.error("Lỗi tải thông tin portfolio cho Risk Analysis:", e);
+        }
+    }
+
     const lang = AppState.currentLang || 'vi';
+
+    const tickers = (AppState.portfolioHoldings || []).map(h => h.ticker).join(', ');
+    const totalInvested = (AppState.portfolioHoldings || []).reduce((sum, h) => sum + (h.qty * h.avgCost), 0);
+    
+    // Format total invested capital with dots, fallback to '100.000.000' if 0
+    const formattedCapital = totalInvested > 0 
+        ? Math.floor(totalInvested).toLocaleString('vi-VN').replace(/,/g, '.') 
+        : '100.000.000';
 
     main.innerHTML = `
     <div class="page-content" id="risk-page">
@@ -31,15 +72,15 @@ export function renderRiskAnalysis() {
                 <div class="form-group">
                     <label>${t('risk_opt_tickers')}</label>
                     <input type="text" id="opt-tickers" class="form-input" placeholder="VD: FPT, VCB, MWG, GAS, HPG"
-                        value="${AppState.portfolioHoldings.map(h=>h.ticker).join(', ')}"/>
+                        value="${tickers}"/>
                 </div>
                 <div class="form-group">
                     <label>${t('risk_opt_capital')}</label>
-                    <input type="text" id="opt-capital" class="form-input" placeholder="VD: 1.000.000.000" value="1.200.000.000"/>
+                    <input type="text" id="opt-capital" class="form-input" placeholder="VD: 1.000.000.000" value="${formattedCapital}"/>
                 </div>
                 <div class="form-group">
                     <label>${t('risk_opt_return')}</label>
-                    <input type="number" id="opt-return" class="form-input" placeholder="20" value="20"/>
+                    <input type="number" id="opt-return" class="form-input" placeholder="10" value="10"/>
                 </div>
             </div>
             <div style="display:flex; gap:1rem; margin-top:1rem; flex-wrap:wrap;">
@@ -52,10 +93,11 @@ export function renderRiskAnalysis() {
         <div id="panel-evaluator" class="input-panel glass-card" style="display:none;">
             <h3 style="margin-bottom:1.2rem;">${t('risk_eval_title')}</h3>
             <div id="eval-holdings-list">
-                ${AppState.portfolioHoldings.map((h,i) => `
+                ${(AppState.portfolioHoldings || []).map((h,i) => `
                     <div class="holding-row-new" data-idx="${i}">
-                        <input type="text"   class="form-input eval-ticker" placeholder="${t('dash_col_ticker')}" value="${h.ticker}" style="width:120px;"/>
-                        <input type="number" class="form-input eval-qty"    placeholder="${t('ptf_col_qty')}" value="${h.qty}" style="width:120px;"/>
+                        <input type="text"   class="form-input eval-ticker" placeholder="${t('dash_col_ticker')}" value="${h.ticker}" style="width:110px; text-transform:uppercase;"/>
+                        <input type="number" class="form-input eval-qty"    placeholder="${t('ptf_col_qty')}" value="${h.qty}" style="width:110px;"/>
+                        <input type="number" class="form-input eval-cost"   placeholder="Giá vốn" value="${h.avgCost || ''}" style="width:130px;"/>
                         <button class="btn-remove-row">✕</button>
                     </div>
                 `).join('')}
@@ -71,7 +113,9 @@ export function renderRiskAnalysis() {
                     </select>
                 </div>
                 <div class="live-capital-display">
-                    ${lang === 'vi' ? 'Tổng vốn ước tính' : 'Est. Total Capital'}: <strong id="eval-live-capital">--</strong>
+                    ${lang === 'vi' ? 'Vốn đầu tư ban đầu' : 'Initial Capital'}: <strong id="eval-live-capital">--</strong>
+                    <span style="margin:0 0.5rem; color:var(--text-muted)">|</span>
+                    ${lang === 'vi' ? 'Giá trị thị trường' : 'Market Value'}: <strong id="eval-market-value">--</strong>
                 </div>
                 <button class="btn-primary" id="btn-run-eval" style="margin-left:auto;">${t('risk_eval_btn')}</button>
             </div>
@@ -251,8 +295,9 @@ function bindRiskAnalysisEvents() {
         const row  = document.createElement('div');
         row.className = 'holding-row-new';
         row.innerHTML = `
-            <input type="text"   class="form-input eval-ticker" placeholder="Mã CP" style="width:120px;"/>
-            <input type="number" class="form-input eval-qty"    placeholder="KL"    style="width:120px;"/>
+            <input type="text"   class="form-input eval-ticker" placeholder="Mã CP" style="width:110px; text-transform:uppercase;"/>
+            <input type="number" class="form-input eval-qty"    placeholder="KL"    style="width:110px;"/>
+            <input type="number" class="form-input eval-cost"   placeholder="Giá vốn" style="width:130px;"/>
             <button class="btn-remove-row">✕</button>
         `;
         row.querySelector('.btn-remove-row').addEventListener('click', () => { row.remove(); updateLiveCapital(); });
@@ -282,12 +327,15 @@ function bindRiskAnalysisEvents() {
         stressEl.style.display = 'block';
         stressEl.textContent = `${t('risk_error_vni')}: -${fmtVND(Math.abs(data.stress_test.estimated_loss_vnd))}`;
     });
+
+    // Initial load of estimated capital
+    updateLiveCapital();
 }
 
 
 function bindLiveCapitalListeners() {
     let timer;
-    document.querySelectorAll('.eval-ticker, .eval-qty').forEach(el => {
+    document.querySelectorAll('.eval-ticker, .eval-qty, .eval-cost').forEach(el => {
         el.removeEventListener('input', scheduleUpdate);
         el.addEventListener('input', scheduleUpdate);
     });
@@ -299,17 +347,49 @@ function bindLiveCapitalListeners() {
 
 async function updateLiveCapital() {
     const tickers = [...document.querySelectorAll('.eval-ticker')].map(i => i.value.trim().toUpperCase()).filter(Boolean);
-    if (!tickers.length) { document.getElementById('eval-live-capital').textContent = '--'; return; }
+    if (!tickers.length) { 
+        document.getElementById('eval-live-capital').textContent = '--'; 
+        document.getElementById('eval-market-value').textContent = '--';
+        return; 
+    }
+    
+    let prices = {};
     try {
-        const prices   = await getCurrentPrices(tickers);
-        let total = 0;
-        document.querySelectorAll('.holding-row-new').forEach(row => {
-            const t = row.querySelector('.eval-ticker')?.value.trim().toUpperCase();
-            const q = parseFloat(row.querySelector('.eval-qty')?.value);
-            if (t && !isNaN(q) && prices[t]) total += prices[t] * q;
-        });
-        document.getElementById('eval-live-capital').textContent = fmtVND(total);
-    } catch { document.getElementById('eval-live-capital').textContent = 'Offline'; }
+        prices = await getCurrentPrices(tickers);
+    } catch (e) {
+        console.error("Lỗi lấy giá hiện tại cho live capital display:", e);
+    }
+
+    let totalCost = 0;
+    let totalMarket = 0;
+
+    document.querySelectorAll('.holding-row-new').forEach(row => {
+        const t = row.querySelector('.eval-ticker')?.value.trim().toUpperCase();
+        const q = parseFloat(row.querySelector('.eval-qty')?.value);
+        let c = parseFloat(row.querySelector('.eval-cost')?.value);
+
+        if (!t || isNaN(q)) return;
+
+        // Fallback logic cho giá vốn nếu rỗng
+        if (isNaN(c) || c <= 0) {
+            const found = AppState.portfolioHoldings?.find(h => h.ticker === t);
+            if (found && found.avgCost) {
+                c = found.avgCost;
+            } else if (prices[t]) {
+                c = prices[t];
+            } else {
+                c = 0;
+            }
+        }
+
+        const marketPrice = prices[t] || c;
+
+        totalCost += q * c;
+        totalMarket += q * marketPrice;
+    });
+
+    document.getElementById('eval-live-capital').textContent = fmtVND(totalCost);
+    document.getElementById('eval-market-value').textContent = totalMarket > 0 ? fmtVND(totalMarket) : 'Offline';
 }
 
 async function runOptimizer() {
@@ -340,11 +420,27 @@ async function runOptimizer() {
 }
 
 async function runEvaluator() {
+    const lang = AppState.currentLang || 'vi';
     const holdings = {};
     document.querySelectorAll('.holding-row-new').forEach(row => {
         const t = row.querySelector('.eval-ticker')?.value.trim().toUpperCase();
         const q = parseFloat(row.querySelector('.eval-qty')?.value);
-        if (t && !isNaN(q)) holdings[t] = q;
+        let c = parseFloat(row.querySelector('.eval-cost')?.value);
+
+        if (t && !isNaN(q)) {
+            if (isNaN(c) || c <= 0) {
+                const found = AppState.portfolioHoldings?.find(h => h.ticker === t);
+                if (found && found.avgCost) {
+                    c = found.avgCost;
+                } else {
+                    c = 0; // Backend sẽ tự động fallback về giá thị trường
+                }
+            }
+            holdings[t] = {
+                quantity: q,
+                cost: c
+            };
+        }
     });
     const days = parseInt(document.getElementById('eval-timeframe').value);
 

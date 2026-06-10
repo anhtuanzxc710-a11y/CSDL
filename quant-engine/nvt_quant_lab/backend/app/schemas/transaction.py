@@ -17,6 +17,7 @@ class TransactionCreate(TransactionBase):
     pass
 
 class TransactionUpdate(BaseModel):
+    ticker: Optional[str] = None
     side: Optional[TransactionType] = None
     quantity: Optional[float] = None
     price: Optional[float] = None

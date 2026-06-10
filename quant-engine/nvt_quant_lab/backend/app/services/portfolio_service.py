@@ -131,6 +131,58 @@ def delete_transaction(db: Session, transaction_id: int, portfolio_id: int, user
     return False
 
 
+def update_transaction(db: Session, transaction_id: int, portfolio_id: int, user_id: int, obj_in: TransactionUpdate) -> Optional[Transaction]:
+    if not get_portfolio(db, portfolio_id, user_id):
+        return None
+    # Verify transaction belongs to portfolio
+    tx = db.query(Transaction).filter(Transaction.id == transaction_id, Transaction.portfolio_id == portfolio_id).first()
+    if not tx:
+        return None
+    
+    update_data = obj_in.dict(exclude_unset=True)
+    
+    if "ticker" in update_data and update_data["ticker"]:
+        ticker_str = update_data["ticker"].upper()
+        stock = db.query(Stock).filter(Stock.ticker == ticker_str).first()
+        if not stock:
+            try:
+                new_stock = Stock(ticker=ticker_str, company_name=ticker_str)
+                db.add(new_stock)
+                db.commit()
+            except Exception as e:
+                db.rollback()
+                raise HTTPException(status_code=500, detail=f"Failed to auto-register ticker {ticker_str}: {str(e)}")
+        tx.ticker = ticker_str
+        
+    if "side" in update_data:
+        tx.side = update_data["side"]
+    if "quantity" in update_data:
+        tx.quantity = update_data["quantity"]
+    if "price" in update_data:
+        tx.price = update_data["price"]
+    if "fee" in update_data:
+        tx.fee = update_data["fee"]
+    if "tax" in update_data:
+        tx.tax = update_data["tax"]
+    if "trade_date" in update_data:
+        tx.trade_date = update_data["trade_date"].date() if update_data["trade_date"] else datetime.utcnow().date()
+    if "note" in update_data:
+        tx.note = update_data["note"]
+        
+    try:
+        db.commit()
+        db.refresh(tx)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error during transaction update: {str(e)}")
+        
+    # Audit and Snapshot trigger
+    add_audit_log(db, action="TRANSACTION_UPDATED", entity_type="transaction", entity_id=str(transaction_id), user_id=user_id)
+    capture_portfolio_snapshot(db, portfolio_id, user_id)
+    
+    return tx
+
+
 # --- HOLDINGS COMPUTATION ---
 
 def get_portfolio_holdings(db: Session, portfolio_id: int, user_id: int) -> Optional[HoldingsResponse]:
