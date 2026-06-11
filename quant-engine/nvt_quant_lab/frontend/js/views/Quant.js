@@ -352,7 +352,7 @@ function showQuantError(message) {
     const errorCard = document.getElementById('quant-error');
     const errorMsg = document.getElementById('quant-error-message');
     const loading = document.getElementById('quant-loading');
-    
+
     if (loading) loading.style.display = 'none';
     if (errorCard) {
         errorCard.style.display = 'block';
@@ -379,7 +379,7 @@ function displayQuantResults(data) {
 
     // 2. Charts
     const dates = data.charts.dates;
-    
+
     // 2.1 Equity Curve Chart
     const eqCurve = data.charts.equity_curve.map(v => v * 100); // % scale
     Plotly.react('quant-equity-chart', [{
@@ -456,20 +456,20 @@ function displayQuantResults(data) {
             <tr>
                 <td style="font-weight:600;"><span class="ticker-badge">${t1}</span></td>
                 ${tickers.map(t2 => {
-                    const val = data.correlation_matrix[t1][t2];
-                    let cellStyle = '';
-                    
-                    // Heatmap coloring: green for high correlation, neutral for low
-                    if (t1 === t2) {
-                        cellStyle = 'background-color: rgba(0, 255, 170, 0.15); font-weight: bold;';
-                    } else {
-                        const alpha = Math.abs(val) * 0.2;
-                        const color = val >= 0 ? `0, 255, 170, ${alpha}` : `255, 85, 85, ${alpha}`;
-                        cellStyle = `background-color: rgba(${color});`;
-                    }
-                    
-                    return `<td class="text-center" style="${cellStyle}">${val.toFixed(2)}</td>`;
-                }).join('')}
+            const val = data.correlation_matrix[t1][t2];
+            let cellStyle = '';
+
+            // Heatmap coloring: green for high correlation, neutral for low
+            if (t1 === t2) {
+                cellStyle = 'background-color: rgba(0, 255, 170, 0.15); font-weight: bold;';
+            } else {
+                const alpha = Math.abs(val) * 0.2;
+                const color = val >= 0 ? `0, 255, 170, ${alpha}` : `255, 85, 85, ${alpha}`;
+                cellStyle = `background-color: rgba(${color});`;
+            }
+
+            return `<td class="text-center" style="${cellStyle}">${val.toFixed(2)}</td>`;
+        }).join('')}
             </tr>
         `;
     }).join('');

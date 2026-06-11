@@ -159,7 +159,7 @@ function bindFinancialsEvents(sessionId) {
         if (!ticker) return;
 
         btn.disabled = true;
-        btn.textContent = t('ai_analyzing'); 
+        btn.textContent = t('ai_analyzing');
         document.getElementById('fin-loading').style.display = 'block';
         document.getElementById('fin-results').style.display = 'none';
 
@@ -228,11 +228,11 @@ function bindFinancialsEvents(sessionId) {
         try {
             const res = await fetch(`/api/payment/payment-qr?session_id=${sessionId}&amount=20000`);
             const payInfo = await res.json();
-            
+
             document.getElementById('payment-qr-img').src = payInfo.qr_url;
             document.getElementById('payment-amount').textContent = `Số tiền: ${payInfo.amount.toLocaleString('vi-VN')}₫`;
             document.getElementById('payment-content').textContent = `Nội dung: ${payInfo.content}`;
-            
+
             startPollingStatus();
         } catch (err) {
             console.error("Lỗi lấy thông tin QR:", err);
@@ -273,4 +273,5 @@ function bindFinancialsEvents(sessionId) {
         }
     });
 }
+
 

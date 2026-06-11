@@ -1,6 +1,7 @@
 import { AppState } from '../state.js';
 import { ChatService } from '../services/chatService.js';
 import { t } from '../i18n.js';
+import { parseMarkdown } from '../utils.js';
 
 export async function renderAIAssistant() {
     const main = document.getElementById('main-content');
@@ -139,8 +140,7 @@ export async function renderAIAssistant() {
         };
 
         const formatMsgHTML = (role, text) => {
-
-            const formatted = text.replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>').replace(/\\n/g, '<br>');
+            const formatted = parseMarkdown(text);
             if (role === 'user') {
                 return `<div class="chat-msg user"><div class="msg-bubble-full user-bubble">${formatted}</div></div>`;
             }
@@ -202,7 +202,7 @@ export async function renderAIAssistant() {
                     const { done, value } = await reader.read();
                     if (done) break;
                     replyText += decoder.decode(value, { stream: true });
-                    botEl.innerHTML = replyText.replace(/\\*\\*(.*?)\\*\\*/g, '<strong>$1</strong>').replace(/\\n/g, '<br>');
+                    botEl.innerHTML = parseMarkdown(replyText);
                     msgsBox.scrollTop = msgsBox.scrollHeight;
                 }
 

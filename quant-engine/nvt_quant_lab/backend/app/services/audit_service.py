@@ -20,6 +20,16 @@ def log_audit(
     """
     # 1. Mask sensitive details
     details_masked = mask_sensitive_data(details) if details else {}
+    import decimal
+    def convert_decimals(obj):
+        if isinstance(obj, dict):
+            return {k: convert_decimals(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [convert_decimals(v) for v in obj]
+        elif isinstance(obj, decimal.Decimal):
+            return float(obj)
+        return obj
+    details_masked = convert_decimals(details_masked)
 
     # 2. Log to Database
     if db:

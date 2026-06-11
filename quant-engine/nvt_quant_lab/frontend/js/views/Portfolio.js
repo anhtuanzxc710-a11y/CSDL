@@ -1,5 +1,5 @@
 import { AppState } from '../state.js';
-import { PortfolioService } from '../services/portfolioService.js';
+import { PortfolioService } from '../services/portfolioService.js?v=2';
 import { t } from '../i18n.js';
 
 let editingTxId = null;
@@ -131,13 +131,13 @@ export async function renderPortfolio() {
                         <label>Ngày GD</label>
                         <input type="date" id="tx-date" class="form-input"/>
                     </div>
-                    <div class="form-group" style="margin-bottom:0; flex:1; min-width:120px;">
+                    <div class="form-group" style="display: none;">
                         <label>Phí GD (VNĐ)</label>
-                        <input type="number" id="tx-fee" class="form-input" placeholder="0" min="0" step="any"/>
+                        <input type="number" id="tx-fee" class="form-input" value="0"/>
                     </div>
-                    <div class="form-group" style="margin-bottom:0; flex:1; min-width:120px;">
+                    <div class="form-group" style="display: none;">
                         <label>Thuế GD (VNĐ)</label>
-                        <input type="number" id="tx-tax" class="form-input" placeholder="0" min="0" step="any"/>
+                        <input type="number" id="tx-tax" class="form-input" value="0"/>
                     </div>
                     <div class="form-group" style="margin-bottom:0; flex:1.5; min-width:180px;">
                         <label>Ghi chú</label>
@@ -194,7 +194,6 @@ export async function renderPortfolio() {
                                 <th class="text-right">${t('ptf_tx_qty')}</th>
                                 <th class="text-right">${t('ptf_tx_price')}</th>
                                 <th class="text-right">Tổng giá trị</th>
-                                <th class="text-right">Phí / Thuế</th>
                                 <th>Ngày giao dịch</th>
                                 <th>Ghi chú</th>
                                 <th style="text-align: center; width: 150px;">Thao tác</th>
@@ -508,7 +507,7 @@ function renderRows(rows) {
 
 function renderTxRows(transactions) {
     if (!transactions || transactions.length === 0) {
-        return `<tr><td colspan="9" style="text-align:center; padding: 2rem; color:var(--text-muted);">${t('ptf_empty')}</td></tr>`;
+        return `<tr><td colspan="8" style="text-align:center; padding: 2rem; color:var(--text-muted);">${t('ptf_empty')}</td></tr>`;
     }
     return transactions.map(tx => {
         const sideBadge = tx.side === 'BUY' 
@@ -528,7 +527,6 @@ function renderTxRows(transactions) {
                 <td class="text-right">${tx.quantity.toLocaleString('vi-VN')}</td>
                 <td class="text-right">${fmtVND(tx.price)}</td>
                 <td class="text-right" style="font-weight:600; color:var(--text-main);">${fmtVND(totalVal)}</td>
-                <td class="text-right" style="font-size:0.85rem; color:var(--text-muted);">${feeStr} / ${taxStr}</td>
                 <td>${dateStr}</td>
                 <td style="color:var(--text-muted); font-size:0.85rem; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${noteStr}">${noteStr}</td>
                 <td style="text-align: center;">

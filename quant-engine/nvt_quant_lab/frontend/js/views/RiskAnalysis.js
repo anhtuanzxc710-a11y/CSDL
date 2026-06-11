@@ -1,6 +1,7 @@
-import { AppState }           from '../state.js';
+import { AppState } from '../state.js';
 import { runSimulation, evaluatePortfolio, fetchAIAdviceStream, getCurrentPrices, getNews } from '../api.js';
 import { t } from '../i18n.js';
+import { parseMarkdown } from '../utils.js';
 
 function fmtVND(v) { return Math.floor(v ?? 0).toLocaleString('vi-VN') + '₫'; }
 function fmtPct(v, decimals = 2) { return v != null ? (v * 100).toFixed(decimals) + '%' : '--'; }
@@ -23,7 +24,7 @@ export async function renderRiskAnalysis() {
                 </div>
             </div>
         `;
-        
+
         try {
             const { PortfolioService } = await import('../services/portfolioService.js');
             let portfolios = await PortfolioService.getPortfolios();
@@ -46,10 +47,10 @@ export async function renderRiskAnalysis() {
 
     const tickers = (AppState.portfolioHoldings || []).map(h => h.ticker).join(', ');
     const totalInvested = (AppState.portfolioHoldings || []).reduce((sum, h) => sum + (h.qty * h.avgCost), 0);
-    
+
     // Format total invested capital with dots, fallback to '100.000.000' if 0
-    const formattedCapital = totalInvested > 0 
-        ? Math.floor(totalInvested).toLocaleString('vi-VN').replace(/,/g, '.') 
+    const formattedCapital = totalInvested > 0
+        ? Math.floor(totalInvested).toLocaleString('vi-VN').replace(/,/g, '.')
         : '100.000.000';
 
     main.innerHTML = `
@@ -93,7 +94,7 @@ export async function renderRiskAnalysis() {
         <div id="panel-evaluator" class="input-panel glass-card" style="display:none;">
             <h3 style="margin-bottom:1.2rem;">${t('risk_eval_title')}</h3>
             <div id="eval-holdings-list">
-                ${(AppState.portfolioHoldings || []).map((h,i) => `
+                ${(AppState.portfolioHoldings || []).map((h, i) => `
                     <div class="holding-row-new" data-idx="${i}">
                         <input type="text"   class="form-input eval-ticker" placeholder="${t('dash_col_ticker')}" value="${h.ticker}" style="width:110px; text-transform:uppercase;"/>
                         <input type="number" class="form-input eval-qty"    placeholder="${t('ptf_col_qty')}" value="${h.qty}" style="width:110px;"/>
@@ -292,7 +293,7 @@ function bindRiskAnalysisEvents() {
     // Add evaluator row
     document.getElementById('btn-add-eval-row').addEventListener('click', () => {
         const list = document.getElementById('eval-holdings-list');
-        const row  = document.createElement('div');
+        const row = document.createElement('div');
         row.className = 'holding-row-new';
         row.innerHTML = `
             <input type="text"   class="form-input eval-ticker" placeholder="Mã CP" style="width:110px; text-transform:uppercase;"/>
@@ -347,12 +348,12 @@ function bindLiveCapitalListeners() {
 
 async function updateLiveCapital() {
     const tickers = [...document.querySelectorAll('.eval-ticker')].map(i => i.value.trim().toUpperCase()).filter(Boolean);
-    if (!tickers.length) { 
-        document.getElementById('eval-live-capital').textContent = '--'; 
+    if (!tickers.length) {
+        document.getElementById('eval-live-capital').textContent = '--';
         document.getElementById('eval-market-value').textContent = '--';
-        return; 
+        return;
     }
-    
+
     let prices = {};
     try {
         prices = await getCurrentPrices(tickers);
@@ -394,10 +395,10 @@ async function updateLiveCapital() {
 
 async function runOptimizer() {
     const tickersRaw = document.getElementById('opt-tickers').value;
-    const tickers    = tickersRaw.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+    const tickers = tickersRaw.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
     const capitalRaw = document.getElementById('opt-capital').value.replace(/\./g, '').replace(/,/g, '');
-    const capital    = parseFloat(capitalRaw);
-    const ret        = parseFloat(document.getElementById('opt-return').value) / 100;
+    const capital = parseFloat(capitalRaw);
+    const ret = parseFloat(document.getElementById('opt-return').value) / 100;
 
     if (tickers.length < 2 || isNaN(capital) || isNaN(ret)) {
         alert(AppState.currentLang === 'vi' ? 'Cần ít nhất 2 mã và vốn hợp lệ.' : 'Need at least 2 tickers and valid capital.'); return;
@@ -469,9 +470,9 @@ function handleResults(data) {
     document.getElementById('risk-results').style.display = 'block';
     document.getElementById('btn-stress-show').style.display = 'inline-block';
 
-    const mc     = data.monte_carlo;
-    const vals   = mc?.monetary_values;
-    const adv    = data.advanced_metrics;
+    const mc = data.monte_carlo;
+    const vals = mc?.monetary_values;
+    const adv = data.advanced_metrics;
     const stress = data.stress_test;
 
     // Key metric cards
@@ -480,7 +481,7 @@ function handleResults(data) {
         document.getElementById('rm-ci').textContent = `95%: [${fmtVND(vals.ci_lower_value)} → ${fmtVND(vals.ci_upper_value)}]`;
 
         const varLoss = vals.var_value_loss;
-        const varEl   = document.getElementById('rm-var');
+        const varEl = document.getElementById('rm-var');
         if (varLoss >= 0) {
             varEl.textContent = 'Vẫn sinh lời ✓';
             varEl.style.color = 'var(--neon-green)';
@@ -499,7 +500,7 @@ function handleResults(data) {
         if (mdd != null) {
             const mddPct = (mdd * 100).toFixed(2);
             document.getElementById('rm-mdd').textContent = mddPct + '%';
-            document.getElementById('adv-mdd').textContent  = mddPct + '%';
+            document.getElementById('adv-mdd').textContent = mddPct + '%';
             const warn = document.getElementById('rm-mdd-warn');
             if (Math.abs(mdd) > 0.2) {
                 warn.textContent = t('risk_metric_mdd_warn');
@@ -510,11 +511,11 @@ function handleResults(data) {
             }
 
         }
-        document.getElementById('adv-beta').textContent   = adv.beta?.toFixed(2)    ?? '--';
-        document.getElementById('adv-sortino').textContent = adv.sortino?.toFixed(2)  ?? '--';
-        document.getElementById('adv-treynor').textContent = adv.treynor?.toFixed(4)  ?? '--';
-        document.getElementById('adv-rsq').textContent    = adv.r_squared?.toFixed(2) ?? '--';
-        document.getElementById('adv-calmar').textContent  = adv.calmar?.toFixed(2)   ?? '--';
+        document.getElementById('adv-beta').textContent = adv.beta?.toFixed(2) ?? '--';
+        document.getElementById('adv-sortino').textContent = adv.sortino?.toFixed(2) ?? '--';
+        document.getElementById('adv-treynor').textContent = adv.treynor?.toFixed(4) ?? '--';
+        document.getElementById('adv-rsq').textContent = adv.r_squared?.toFixed(2) ?? '--';
+        document.getElementById('adv-calmar').textContent = adv.calmar?.toFixed(2) ?? '--';
         document.getElementById('adv-metrics-card').style.display = 'block';
     }
 
@@ -523,28 +524,28 @@ function handleResults(data) {
         document.getElementById('frontier-card').style.display = 'block';
         Plotly.react('frontier-chart', data.chart.data, {
             ...data.chart.layout,
-            paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)',
-            margin:{l:40,r:20,t:20,b:40}, font:{color:'#94A3B8'}
-        }, { responsive:true, displayModeBar:false });
+            paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+            margin: { l: 40, r: 20, t: 20, b: 40 }, font: { color: '#94A3B8' }
+        }, { responsive: true, displayModeBar: false });
     }
 
     if (data.backtest_chart) {
         document.getElementById('backtest-card').style.display = 'block';
         Plotly.react('backtest-chart', data.backtest_chart.data, {
             ...data.backtest_chart.layout,
-            paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)',
-            margin:{l:40,r:20,t:20,b:40}, font:{color:'#94A3B8'}
-        }, { responsive:true, displayModeBar:false });
+            paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+            margin: { l: 40, r: 20, t: 20, b: 40 }, font: { color: '#94A3B8' }
+        }, { responsive: true, displayModeBar: false });
     }
 
     if (data.pie_chart) {
         document.getElementById('allocation-card').style.display = 'block';
         Plotly.react('allocation-chart', data.pie_chart.data, {
             ...data.pie_chart.layout,
-            paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)',
-            margin:{l:20,r:20,t:20,b:20}, font:{color:'#94A3B8'},
-            showlegend:true
-        }, { responsive:true, displayModeBar:false });
+            paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+            margin: { l: 20, r: 20, t: 20, b: 20 }, font: { color: '#94A3B8' },
+            showlegend: true
+        }, { responsive: true, displayModeBar: false });
     }
 
     // Trading signals
@@ -553,7 +554,7 @@ function handleResults(data) {
         const tbody = document.getElementById('signals-tbody');
         tbody.innerHTML = Object.entries(data.trading_signals).map(([ticker, sig]) => {
             let badgeClass = 'badge-hold';
-            if (sig.action.includes('BUY'))  badgeClass = 'badge-buy';
+            if (sig.action.includes('BUY')) badgeClass = 'badge-buy';
             if (sig.action.includes('SELL')) badgeClass = 'badge-sell';
             return `
                 <tr>
@@ -573,7 +574,7 @@ function handleResults(data) {
     if (data.raw_prices) {
         document.getElementById('prices-card').style.display = 'block';
         if (data.last_updated_date) document.getElementById('prices-date').textContent = 'Cập nhật: ' + data.last_updated_date;
-        document.getElementById('prices-tbody').innerHTML = Object.entries(data.raw_prices).map(([t,p]) =>
+        document.getElementById('prices-tbody').innerHTML = Object.entries(data.raw_prices).map(([t, p]) =>
             `<tr><td><span class="ticker-badge">${t}</span></td><td class="text-right" style="color:var(--neon-green)">${fmtVND(p)}</td></tr>`
         ).join('');
     }
@@ -586,30 +587,30 @@ function handleResults(data) {
 }
 
 async function streamAIAdvice(data) {
-    const panel   = document.getElementById('ai-panel');
-    const textEl  = document.getElementById('ai-text');
-    const loadEl  = document.getElementById('ai-loading');
-    const badge   = document.getElementById('ai-status-badge');
-    const badgeTxt= document.getElementById('ai-badge-text');
+    const panel = document.getElementById('ai-panel');
+    const textEl = document.getElementById('ai-text');
+    const loadEl = document.getElementById('ai-loading');
+    const badge = document.getElementById('ai-status-badge');
+    const badgeTxt = document.getElementById('ai-badge-text');
 
     panel.style.display = 'block';
-    textEl.innerHTML    = '';
-    loadEl.style.display= 'flex';
+    textEl.innerHTML = '';
+    loadEl.style.display = 'flex';
     badge.classList.remove('done');
-    badgeTxt.textContent= t('ai_analyzing');
+    badgeTxt.textContent = t('ai_analyzing');
 
 
     try {
         const response = await fetchAIAdviceStream({
-            monte_carlo:      data.monte_carlo,
-            stress_test:      data.stress_test,
+            monte_carlo: data.monte_carlo,
+            stress_test: data.stress_test,
             advanced_metrics: data.advanced_metrics,
-            news_data:        data.news_data || {},
+            news_data: data.news_data || {},
             lang: AppState.currentLang || 'vi'
         });
 
 
-        const reader  = response.body.getReader();
+        const reader = response.body.getReader();
         const decoder = new TextDecoder();
         loadEl.style.display = 'none';
 
@@ -622,10 +623,7 @@ async function streamAIAdvice(data) {
             const { done, value } = await reader.read();
             if (done) break;
             full += decoder.decode(value, { stream: true });
-            textEl.innerHTML = full
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g,     '<em>$1</em>')
-                .replace(/\n/g,            '<br>');
+            textEl.innerHTML = parseMarkdown(full);
             textEl.appendChild(cursor);
         }
         cursor.remove();
@@ -657,4 +655,6 @@ function showError(msg) {
     banner.className = 'error-banner';
     banner.innerHTML = `⚠️ Lỗi kết nối backend: ${msg}<br><small>Đảm bảo FastAPI đang chạy: <code>uvicorn main:app --reload</code></small>`;
     main.insertBefore(banner, main.children[2]);
+}
+    }
 }

@@ -323,10 +323,10 @@ function bindEvents() {
     if (exportCsvBtn) {
         exportCsvBtn.addEventListener('click', () => {
             if (!lastOptData) return;
-            
+
             // Determine structure based on whether optimizer is top-level (from /optimize) or inside combined /optimize-and-backtest
             const optSection = lastOptData.optimizer ? lastOptData.optimizer : lastOptData;
-            
+
             let csvContent = "\uFEFFSymbol,Weight,Risk Contribution\n";
             const weights = optSection.weights;
             const rc = optSection.risk_contribution || {};
@@ -414,10 +414,10 @@ async function runTask(actionType) {
         if (actionType === 'optimize') {
             const data = await runOptimize(payload);
             if (data.success === false) throw new Error(data.message || 'Lỗi không xác định.');
-            
+
             lastOptData = data;
             AppState.lastOptimizerResult = data;
-            
+
             if (data.warnings && data.warnings.length > 0) {
                 degradedBanner.style.display = 'block';
                 document.getElementById('optimizer-degraded-text').textContent = data.warnings.join(' | ');
@@ -435,7 +435,7 @@ async function runTask(actionType) {
             };
             const data = await runOptimizeAndBacktest(btPayload);
             if (data.success === false) throw new Error(data.message || 'Lỗi không xác định.');
-            
+
             lastOptData = data;
             AppState.lastOptimizerResult = data.optimizer || data;
             if (data.backtest) {
@@ -493,7 +493,7 @@ function displayOptimizationResults(optData) {
     // Weights table
     const weightsBody = document.getElementById('opt-weights-tbody');
     const symbols = Object.keys(optData.weights);
-    
+
     weightsBody.innerHTML = symbols.map(s => {
         const w = optData.weights[s];
         const rc = optData.risk_contribution ? optData.risk_contribution[s] : 0.0;
@@ -526,7 +526,7 @@ function displayOptimizationResults(optData) {
     if (frontierPoints && frontierPoints.length > 0) {
         const xVols = frontierPoints.map(p => p.volatility * 100);
         const yRets = frontierPoints.map(p => p.target_return * 100);
-        
+
         Plotly.react('opt-frontier-chart', [
             {
                 x: xVols,
@@ -588,7 +588,7 @@ function displayBacktestResults(btData) {
     backtestBlock.style.display = 'flex';
 
     const metrics = btData.metrics;
-    
+
     // Stats cards
     document.getElementById('opt-bt-total-return').textContent = fmtPct(metrics.total_return);
     document.getElementById('opt-bt-ann-return').textContent = fmtPct(metrics.annualized_return);

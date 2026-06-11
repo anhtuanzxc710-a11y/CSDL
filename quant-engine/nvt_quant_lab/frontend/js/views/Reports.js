@@ -1,6 +1,7 @@
 import { SystemService } from '../services/systemService.js';
 import { API_BASE } from '../api.js';
 import { t } from '../i18n.js';
+import { AppState } from '../state.js';
 
 export async function renderReports() {
     const main = document.getElementById('main-content');
@@ -88,7 +89,7 @@ async function loadReports() {
 
         tbody.innerHTML = reports.map(r => `
             <tr>
-                <td><strong>${r.name}</strong></td>
+                <td><strong>${r.storage_path || 'Báo cáo'}</strong></td>
                 <td><span class="ticker-badge">${r.report_type}</span></td>
                 <td>${new Date(r.created_at).toLocaleString(AppState.currentLang === 'vi' ? 'vi-VN' : 'en-US')}</td>
                 <td class="text-right">

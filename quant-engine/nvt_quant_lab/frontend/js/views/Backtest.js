@@ -2,8 +2,8 @@ import { AppState } from '../state.js';
 import { runBacktest } from '../api.js';
 import { t } from '../i18n.js';
 
-function fmtPct(v, decimals = 2) { 
-    return v != null ? (v * 100).toFixed(decimals) + '%' : '--'; 
+function fmtPct(v, decimals = 2) {
+    return v != null ? (v * 100).toFixed(decimals) + '%' : '--';
 }
 
 export function renderBacktest() {
@@ -345,20 +345,20 @@ function bindEvents() {
         exportCsvBtn.addEventListener('click', () => {
             if (!lastBacktestData || !lastBacktestData.series) return;
             const series = lastBacktestData.series;
-            
+
             // UTF-8 BOM for Excel compatibility
-            let csvContent = "\uFEFFDate,Portfolio Value,Benchmark Value,Drawdown,Daily Return\n"; 
-            
+            let csvContent = "\uFEFFDate,Portfolio Value,Benchmark Value,Drawdown,Daily Return\n";
+
             for (let i = 0; i < series.dates.length; i++) {
                 const date = series.dates[i];
                 const portVal = series.equity_curve[i];
                 const benchVal = series.benchmark_curve ? series.benchmark_curve[i] : '';
                 const dd = series.drawdown[i];
                 const ret = series.daily_returns[i];
-                
+
                 csvContent += `${date},${portVal},${benchVal},${dd},${ret}\n`;
             }
-            
+
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
@@ -375,24 +375,24 @@ function updateCustomWeightsFields() {
     const method = document.getElementById('backtest-weighting').value;
     const container = document.getElementById('backtest-custom-weights-container');
     const inputArea = document.getElementById('backtest-custom-weights-inputs');
-    
+
     if (!container || !inputArea) return;
-    
+
     if (method !== 'custom_weight') {
         container.style.display = 'none';
         return;
     }
-    
+
     container.style.display = 'block';
-    
+
     const symbolsRaw = document.getElementById('backtest-symbols').value;
     const symbols = symbolsRaw.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
-    
+
     if (symbols.length === 0) {
         inputArea.innerHTML = `<p style="color: var(--text-muted); font-size: 0.9rem;">Vui lòng nhập danh sách mã cổ phiếu trước.</p>`;
         return;
     }
-    
+
     const equalW = (1.0 / symbols.length).toFixed(4);
     let html = '';
     symbols.forEach(s => {
@@ -442,10 +442,10 @@ async function runBacktestTask() {
             weights[ticker] = val;
             sum += val;
         });
-        
+
         if (Math.abs(sum - 1.0) > 1e-3) {
-            showBacktestError(AppState.currentLang === 'vi' 
-                ? `Tổng tỷ trọng tùy chỉnh phải bằng 1.0 (Hiện tại: ${sum.toFixed(4)})` 
+            showBacktestError(AppState.currentLang === 'vi'
+                ? `Tổng tỷ trọng tùy chỉnh phải bằng 1.0 (Hiện tại: ${sum.toFixed(4)})`
                 : `Total custom weights must sum to 1.0 (Current: ${sum.toFixed(4)})`);
             return;
         }
@@ -520,7 +520,7 @@ function showBacktestError(message) {
     const errorCard = document.getElementById('backtest-error');
     const errorMsg = document.getElementById('backtest-error-message');
     const loading = document.getElementById('backtest-loading');
-    
+
     if (loading) loading.style.display = 'none';
     if (errorCard) {
         errorCard.style.display = 'block';
@@ -535,7 +535,7 @@ function displayBacktestResults(data) {
     results.style.display = 'flex';
 
     const metrics = data.metrics;
-    
+
     // Stats cards
     document.getElementById('bres-total-return').textContent = fmtPct(metrics.total_return);
     document.getElementById('bres-ann-return').textContent = fmtPct(metrics.annualized_return);
@@ -616,7 +616,7 @@ function displayBacktestResults(data) {
 
     // Populate Detailed Metrics Table
     const metricsBody = document.getElementById('backtest-metrics-body');
-    
+
     const details = [
         { name: "Lợi nhuận gộp (Total Return)", value: fmtPct(metrics.total_return) },
         { name: "Lợi nhuận kép năm (CAGR)", value: fmtPct(metrics.annualized_return) },

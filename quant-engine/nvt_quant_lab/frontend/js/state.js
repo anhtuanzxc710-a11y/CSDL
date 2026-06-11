@@ -6,9 +6,9 @@ export const AppState = {
     portfolioHoldings: [],
     portfolios: [], // lists user's portfolios
     selectedPortfolioId: null, // the active portfolio
-    
+
     activeChatThreadId: null, // current active thread
-    
+
     currentLang: localStorage.getItem('nvt_lang') || 'vi',
 
     setSimulationResult(data) {

@@ -3,8 +3,8 @@ import { t } from '../i18n.js';
 
 export function renderSidebar(router) {
     const isAuth = Auth.isAuthenticated();
-    const user   = Auth.getUser();
-    const path   = window.location.hash.replace('#', '') || '/';
+    const user = Auth.getUser();
+    const path = window.location.hash.replace('#', '') || '/';
 
     const navClass = (p) => `nav-link ${path === p ? 'active' : ''}`;
 
@@ -119,18 +119,18 @@ export function renderSidebar(router) {
 }
 
 async function checkServerStatus() {
-    const dot  = document.getElementById('sidebar-status-dot');
+    const dot = document.getElementById('sidebar-status-dot');
     const text = document.getElementById('sidebar-status-text');
     if (!dot || !text) return;
     try {
         const { SystemService } = await import('../services/systemService.js');
         const res = await SystemService.checkHealth();
         if (res && res.status === 'ok') {
-            dot.className  = 'status-dot online';
+            dot.className = 'status-dot online';
             text.textContent = t('sidebar_status_online');
         } else throw new Error();
     } catch {
-        dot.className  = 'status-dot offline';
+        dot.className = 'status-dot offline';
         text.textContent = t('sidebar_status_offline');
     }
 }

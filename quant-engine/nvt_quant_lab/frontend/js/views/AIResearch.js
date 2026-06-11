@@ -407,10 +407,10 @@ function displayResearchResults(resObj) {
 
     // Disclaimers
     const legalDisclaimer = r.disclaimer || "This report is generated using quantitative outputs and AI-assisted interpretation. It is for research and educational purposes only and does not constitute investment advice.";
-    const translatedDisclaimer = isVi 
-        ? "Báo cáo này được tạo bằng kết quả định lượng và hỗ trợ phân tích bằng AI. Báo cáo này chỉ dành cho mục đích nghiên cứu, giáo dục và không cấu thành lời khuyên đầu tư." 
+    const translatedDisclaimer = isVi
+        ? "Báo cáo này được tạo bằng kết quả định lượng và hỗ trợ phân tích bằng AI. Báo cáo này chỉ dành cho mục đích nghiên cứu, giáo dục và không cấu thành lời khuyên đầu tư."
         : "";
-    
+
     const disclaimerHtml = legalDisclaimer + (translatedDisclaimer ? `<br><br><span style="opacity:0.85; font-size:0.75rem;">${translatedDisclaimer}</span>` : "");
     document.getElementById('report-top-disclaimer').innerHTML = disclaimerHtml;
     document.getElementById('report-bottom-disclaimer').innerHTML = disclaimerHtml;
@@ -425,12 +425,12 @@ function displayResearchResults(resObj) {
     const oData = AppState.lastOptimizerResult;
     if (oData && oData.weights) {
         const weightsList = Object.entries(oData.weights).map(([k, v]) => `${k}: ${(v * 100).toFixed(1)}%`).join(', ');
-        compText = isVi 
-            ? `Cấu trúc danh mục tối ưu hóa gồm các mã: ${weightsList}.` 
+        compText = isVi
+            ? `Cấu trúc danh mục tối ưu hóa gồm các mã: ${weightsList}.`
             : `Portfolio optimized weight allocation includes: ${weightsList}.`;
     } else if (qData && qData.tickers) {
-        compText = isVi 
-            ? `Cấu trúc danh mục phân bổ đều gồm các mã: ${qData.tickers.join(', ')}.` 
+        compText = isVi
+            ? `Cấu trúc danh mục phân bổ đều gồm các mã: ${qData.tickers.join(', ')}.`
             : `Baseline equal weight portfolio includes: ${qData.tickers.join(', ')}.`;
     } else {
         compText = r.portfolio_observations || (isVi ? "Thông tin cấu trúc danh mục chưa có sẵn." : "Portfolio composition details not populated.");
@@ -446,11 +446,11 @@ function displayResearchResults(resObj) {
     if (btData && btData.metrics) {
         const CAGR = (btData.metrics.annualized_return * 100).toFixed(2);
         const MDD = (btData.metrics.max_drawdown * 100).toFixed(2);
-        btText = isVi 
+        btText = isVi
             ? `Trong quá trình backtest lịch sử, danh mục đạt tỷ lệ lợi nhuận năm CAGR là ${CAGR}% và mức sụt giảm tài sản lớn nhất Max Drawdown là ${MDD}%. ${r.performance_analysis}`
             : `During the historical backtest simulation, the portfolio achieved a CAGR of ${CAGR}% and a Max Drawdown of ${MDD}%. ${r.performance_analysis}`;
     } else {
-        btText = isVi 
+        btText = isVi
             ? `Chưa chạy kiểm thử lịch sử chi tiết cho cấu hình này. ${r.performance_analysis}`
             : `Historical backtest simulation has not been executed for this setup. ${r.performance_analysis}`;
     }
@@ -461,11 +461,11 @@ function displayResearchResults(resObj) {
     if (oData && oData.metrics) {
         const optSharpe = oData.metrics.sharpe_ratio.toFixed(2);
         const optVol = (oData.metrics.volatility * 100).toFixed(2);
-        optText = isVi 
+        optText = isVi
             ? `Thuật toán tối ưu hóa đề xuất tỷ trọng giúp đạt tỷ số Sharpe dự phóng là ${optSharpe} với độ biến động là ${optVol}%. ${r.portfolio_observations}`
             : `Optimization algorithm suggested weights yielding a projected Sharpe Ratio of ${optSharpe} and volatility of ${optVol}%. ${r.portfolio_observations}`;
     } else {
-        optText = isVi 
+        optText = isVi
             ? `Chưa thực hiện giải bài toán tối ưu hóa. ${r.portfolio_observations}`
             : `Portfolio optimization model has not been solved for these tickers. ${r.portfolio_observations}`;
     }
@@ -511,7 +511,7 @@ function displayResearchResults(resObj) {
 function generateMarkdownReport(resObj) {
     const r = resObj.research;
     const isVi = (resObj.language === 'vi');
-    
+
     let md = `# ${isVi ? 'BÁO CÁO PHÂN TÍCH ĐẦU TƯ AI' : 'AI INVESTMENT RESEARCH REPORT'}\n`;
     md += `*Generated: ${new Date().toLocaleString()} | NVT Quant Lab AI | Lang: ${resObj.language.toUpperCase()}*\n\n`;
     md += `---\n\n`;
@@ -521,9 +521,9 @@ function generateMarkdownReport(resObj) {
         md += `*Báo cáo này được tạo bằng kết quả định lượng và hỗ trợ phân tích bằng AI. Báo cáo này chỉ dành cho mục đích nghiên cứu, giáo dục và không cấu thành lời khuyên đầu tư.*\n`;
     }
     md += `\n---\n\n`;
-    
+
     md += `### 1. Executive Summary\n${r.executive_summary}\n\n`;
-    
+
     // Portfolio Composition Section in MD
     let comp = "";
     const qData = AppState.lastQuantResult;
@@ -537,71 +537,71 @@ function generateMarkdownReport(resObj) {
         comp = r.portfolio_observations;
     }
     md += `### 2. Portfolio Composition\n${comp}\n\n`;
-    
+
     md += `### 3. Quantitative Performance Review\n${r.performance_analysis}\n\n`;
-    
+
     // Backtest findings in MD
     const btData = AppState.lastBacktestResult;
     let btText = "";
     if (btData && btData.metrics) {
         const CAGR = (btData.metrics.annualized_return * 100).toFixed(2);
         const MDD = (btData.metrics.max_drawdown * 100).toFixed(2);
-        btText = isVi 
+        btText = isVi
             ? `Trong quá trình backtest lịch sử, danh mục đạt tỷ lệ lợi nhuận năm CAGR là ${CAGR}% và mức sụt giảm tài sản lớn nhất Max Drawdown là ${MDD}%. ${r.performance_analysis}`
             : `During the historical backtest simulation, the portfolio achieved a CAGR of ${CAGR}% and a Max Drawdown of ${MDD}%. ${r.performance_analysis}`;
     } else {
-        btText = isVi 
+        btText = isVi
             ? `Chưa chạy kiểm thử lịch sử chi tiết cho cấu hình này. ${r.performance_analysis}`
             : `Historical backtest simulation has not been executed for this setup. ${r.performance_analysis}`;
     }
     md += `### 4. Backtest Findings\n${btText}\n\n`;
-    
+
     // Optimizer findings in MD
     let optText = "";
     if (oData && oData.metrics) {
         const optSharpe = oData.metrics.sharpe_ratio.toFixed(2);
         const optVol = (oData.metrics.volatility * 100).toFixed(2);
-        optText = isVi 
+        optText = isVi
             ? `Thuật toán tối ưu hóa đề xuất tỷ trọng giúp đạt tỷ số Sharpe dự phóng là ${optSharpe} với độ biến động là ${optVol}%. ${r.portfolio_observations}`
             : `Optimization algorithm suggested weights yielding a projected Sharpe Ratio of ${optSharpe} and volatility of ${optVol}%. ${r.portfolio_observations}`;
     } else {
-        optText = isVi 
+        optText = isVi
             ? `Chưa thực hiện giải bài toán tối ưu hóa. ${r.portfolio_observations}`
             : `Portfolio optimization model has not been solved for these tickers. ${r.portfolio_observations}`;
     }
     md += `### 5. Optimizer Findings\n${optText}\n\n`;
-    
+
     md += `### 6. Benchmark Comparison\n${r.benchmark_analysis}\n\n`;
     md += `### 7. Risk Assessment\n${r.risk_analysis}\n\n`;
-    
+
     // Strengths & Weaknesses
     md += `### 8. Portfolio Strengths\n`;
     md += isVi
         ? `- Tối ưu hóa đa dạng hóa tỷ trọng giúp hạn chế rủi ro phi hệ thống của từng cổ phiếu.\n- Phù hợp phân bổ vốn dài hạn.`
         : `- Asset diversification reduces idiosyncratic risk.\n- Optimal capital utilization profile.`;
     md += `\n\n`;
-    
+
     md += `### 9. Portfolio Weaknesses\n`;
     md += isVi
         ? `- Độ nhạy cao với biến động thanh khoản thị trường chung.\n- Có thể gánh chịu rủi ro hệ thống đáng kể.`
         : `- Sensitive to market liquidity and macroeconomic factors.\n- Exposed to systematic beta shocks.`;
     md += `\n\n`;
-    
+
     md += `### 10. Important Limitations\n`;
     md += isVi
         ? `Kết quả kiểm thử quá khứ không bảo đảm hiệu suất trong tương lai. Sai số dữ liệu hoặc chi phí giao dịch thực tế có thể khác biệt.`
         : `Historical backtesting does not guarantee future results. Friction costs and data errors may affect actual performance.`;
     md += `\n\n`;
-    
+
     md += `### 11. Conclusion & Key Insights\n`;
     md += isVi
         ? `Báo cáo phân tích AI khuyến nghị duy trì cơ chế theo dõi định lượng chặt chẽ để tối ưu hóa hiệu quả đầu tư.\n\n`
         : `AI analysis recommends periodic rebalancing and monitoring of tail drawdown indicators.\n\n`;
-        
+
     md += `#### Key Takeaways:\n`;
     r.key_takeaways.forEach(item => {
         md += `- ${item}\n`;
     });
-    
+
     return md;
 }
